@@ -1,6 +1,6 @@
 import pytest
 from textwrap import dedent
-from pyblog.markdown_post import MDPost, Metadata
+from pyblog.post import Post
 
 
 @pytest.fixture()
@@ -48,15 +48,14 @@ def invalid_text_3() -> str:
 
 
 def test_parse_metadata(valid_text):
-    md_post = MDPost(valid_text)
-    assert md_post.metadata == [Metadata('draft', 'yes', 0, 10), Metadata('tags', ['lifestyle'], 11, 28)]
+    metadata = Post.parse_metadata(valid_text)
+    expected_dict = {'draft': 'yes', 'tags': ['lifestyle'], 'title': 'My first post'}
+    assert metadata == expected_dict
 
 
 def test_parse_markdown(valid_text):
-    md_post = MDPost(valid_text)
+    md_post = Post(valid_text)
     expected_markdown = dedent("""
-    # My first post
-
     This is my firs valid post. If there's a text that seems like a tag within the post
 
     definition: not a tag
@@ -68,14 +67,14 @@ def test_parse_markdown(valid_text):
 
 def test_invalid_initializer_1(invalid_text_1):
     with pytest.raises(ValueError):
-        MDPost(invalid_text_1)
+        Post(invalid_text_1)
 
 
 def test_invalid_initializer_2(invalid_text_2):
     with pytest.raises(ValueError):
-        MDPost(invalid_text_2)
+        Post(invalid_text_2)
 
 
 def test_invalid_initializer_3(invalid_text_3):
     with pytest.raises(ValueError):
-        MDPost(invalid_text_3)
+        Post(invalid_text_3)
