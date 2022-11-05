@@ -6,8 +6,8 @@ There are two requirements that markdown files should fulfill in order to be con
     2. After the metadata, the next non-empty line should be a level 1 header, i.e., a title prepended by two "#" signs
 """
 import re
+
 import markdown
-from collections import namedtuple
 
 
 class Post:

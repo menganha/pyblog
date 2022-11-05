@@ -1,7 +1,9 @@
-from pathlib import Path
-from pyblog.post import Post
-from jinja2 import Environment, FileSystemLoader
 import shutil
+from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
+
+from pyblog.post import Post
 
 
 class Pyblog:
@@ -31,6 +33,7 @@ class Pyblog:
         self.posts_path.mkdir()
         (self.website_path / 'posts').mkdir()  # TODO: Temporary solution for now
         shutil.copytree(local_template_path, self.template_path)
+        print(f'Pyblog created successfully on {self.main_path}!')
 
     def is_pyblog(self) -> bool:
         """ Checks whether the current directory is a pyblog, i.e., it has the relevant paths"""

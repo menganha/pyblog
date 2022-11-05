@@ -1,6 +1,8 @@
-import pytest
-from pyblog.pyblog import Pyblog
 import textwrap
+
+import pytest
+
+from pyblog.blog import Pyblog
 
 
 @pytest.fixture()
