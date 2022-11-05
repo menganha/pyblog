@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block head %}
+    <title> {% block website_header %}{% endblock %}</title>
+    <meta name="description" content="My page is about something"/>
+    <meta name="viewport" content="width=device-width"/>
+    <meta charset="UTF-8"/>
+    <!--    <link rel="stylesheet" href="/style.css"/>-->
+    {% endblock %}
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div id="title">
+            <a href="index.html">{{ website_name }}</a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/archive.html">Archive</a></li>
+                <li><a href="/reviews.html">Tags</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+</body>
+
+</html>

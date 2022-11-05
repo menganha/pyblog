@@ -5,13 +5,14 @@ There are two requirements that markdown files should fulfill in order to be con
        the tags, etc. The draft metadata is the only mandatory field.
     2. After the metadata, the next non-empty line should be a level 1 header, i.e., a title prepended by two "#" signs
 """
+import datetime as dt
 import re
 
 import markdown
 
 
 class Post:
-    MANDATORY_LABEL = 'draft'
+    MANDATORY_LABELS = ['draft', 'date']
     TITLE_REGEXP = re.compile(r'^\s?#\s(.*)', flags=re.MULTILINE)
     METADATA_REGEXP = re.compile(r'^\s?(\w+):\s(.+)', flags=re.MULTILINE)
 
@@ -47,14 +48,20 @@ class Post:
             text_in_between = raw_text[prev_match_end_pos:match.start()].strip()
             if not text_in_between:
                 metadata_matches.append(match)
+                prev_match_end_pos = match.end()
             else:
                 break
 
         metadata = {}
         for match in metadata_matches:
-            key = match.group(1)
-            value = match.group(2)
-            if '[' in value:
+            key = match.group(1).lower()
+            value = match.group(2).lower()
+            if key == 'title':
+                print(f'Invalid metadata label entry: {key}: {value}')
+                continue
+            if key == 'date':
+                value = dt.date.fromisoformat(value)
+            elif '[' in value:
                 value = [list_element.strip() for list_element in value.strip(' []').split(',')]
             metadata.update({key: value})
 
@@ -68,7 +75,7 @@ class Post:
             metadata.update({'title': match_title.group(1)})
         if not Post.METADATA_REGEXP.match(raw_text):
             raise ValueError('No metadata label found at the beginning of the text')
-        if Post.MANDATORY_LABEL not in metadata:
-            raise ValueError('Label "draft" not found in metadata')
+        if not set(Post.MANDATORY_LABELS).issubset(set(metadata)):
+            raise ValueError(f'Not all mandatory labels {Post.MANDATORY_LABELS} found not found in metadata')
 
         return metadata
