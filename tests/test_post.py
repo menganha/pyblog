@@ -1,5 +1,8 @@
-import pytest
+import datetime as dt
 from textwrap import dedent
+
+import pytest
+
 from pyblog.post import Post
 
 
@@ -7,7 +10,10 @@ from pyblog.post import Post
 def valid_text() -> str:
     return dedent("""
     draft: yes
-    tags: [lifestyle]
+    tags: [lifestyle, manana]
+    another_label: another_value
+    date: 2022-12-11
+    
     # My first post
     
     This is my firs valid post. If there's a text that seems like a tag within the post
@@ -49,7 +55,8 @@ def invalid_text_3() -> str:
 
 def test_parse_metadata(valid_text):
     metadata = Post.parse_metadata(valid_text)
-    expected_dict = {'draft': 'yes', 'tags': ['lifestyle'], 'title': 'My first post'}
+    expected_dict = {'draft': 'yes', 'tags': ['lifestyle', 'manana'], 'another_label': 'another_value', 'title': 'My first post',
+                     'date': dt.date(2022, 12, 11)}
     assert metadata == expected_dict
 
 
@@ -62,7 +69,7 @@ def test_parse_markdown(valid_text):
 
     it shouldn't be considered as such.
     """).strip()
-    assert md_post.markdown == expected_markdown
+    assert md_post._markdown == expected_markdown
 
 
 def test_invalid_initializer_1(invalid_text_1):

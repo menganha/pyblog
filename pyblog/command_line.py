@@ -3,7 +3,7 @@ import http.server
 import socketserver
 from pathlib import Path
 
-from pyblog.blog import Pyblog
+from pyblog.blog import Blog
 
 
 def parse_cli_arguments():
@@ -22,25 +22,32 @@ def parse_cli_arguments():
 if __name__ == '__main__':
     args = parse_cli_arguments()
     if args.command == 'init':
-        pyblog = Pyblog(Path(args.path).expanduser())
+        pyblog = Blog(Path(args.path).expanduser())
         pyblog.create()
     elif args.command == 'build':
-        pyblog = Pyblog(Path('.'))
+        pyblog = Blog(Path('.'))
         if not pyblog.is_pyblog():
             print('Error: The current path does not contain a pyblog')
         else:
-            pyblog.build_home_page()
-            for post_file_path in pyblog.posts_path.rglob('*md'):
-                print(f'Processing {post_file_path}')
-                pyblog.add_post(post_file_path)
+            all_public_posts = pyblog.get_all_public_posts()
+            latest_posts = all_public_posts[:pyblog.HOME_MAX_POSTS]  # Maybe handle this within the pyblog instance
+            print(f'Building index...')
+            pyblog.build_home_page(latest_posts)
+            print(f'Building tag pages...')
+            pyblog.build_tag_pages(all_public_posts)
+            for post in all_public_posts:
+                if post.is_dirty():
+                    print(f'Processing post: {post.path}')
+                    pyblog.build_post(post)
+            print(f'Done!')
     elif args.command == 'test':
-        pyblog = Pyblog(Path('.'))
+        pyblog = Blog(Path('.'))
         if not pyblog.is_pyblog():
             print('Error: The current path does not contain a pyblog')
         else:
             import functools
 
-            PORT = 8000
+            PORT = 9090
             ADDRESS = 'localhost'
             Handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=pyblog.website_path)
             with socketserver.TCPServer((ADDRESS, PORT), Handler) as httpd:

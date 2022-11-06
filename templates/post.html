@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block website_header %} {{ title }} {% endblock %}
+{% block website_header %} {{ post.title }} | {{website_name}} {% endblock %}
 
 {% block content %}
 <article class="post">
     <div class="post_container">
-        <h2>{{ title }}</h2>
+        <h2>{{ post.title }}</h2>
         {{ content | indent(12) }}
     </div>
 </article>

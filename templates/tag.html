@@ -2,7 +2,7 @@
 {% block website_header %} {{ website_name }} {% endblock %}
 
 {% block content %}
-<h2>Latest Posts</h2>
+<h2> {{ tag }} category </h2>
 <article class="post">
     {% for post in latest_posts %}
     <div class="post_container">

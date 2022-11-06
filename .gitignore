@@ -1,2 +1,3 @@
 *.sh
 .idea
+generate_dummy_set_of_posts.py

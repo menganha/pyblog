@@ -6,24 +6,31 @@ from jinja2 import Environment, FileSystemLoader
 from pyblog.post import Post
 
 
-class Pyblog:
+class Blog:
     TEMPLATE_DIR_NAME = 'templates'
     WEBSITE_DIR_NAME = 'public'
     POSTS_DIR_NAME = 'posts'
+    TAGS_DIR_NAME = 'tags'
     HOME_MAX_POSTS = 10
     POST_TEMPLATE = 'post.html'
+    TAG_TEMPLATE = 'tag.html'
+    ALL_TAGS_TEMPLATE = 'all_tags.html'
     INDEX_TEMPLATE = 'index.html'
+    CONFIG_FILE_NAME = 'config.json'
 
     def __init__(self, main_path: Path):
-        # TODO: Maybe have a separate module for template operations?
-        self.name = main_path.name
         self.main_path = main_path
         self.website_path = main_path / self.WEBSITE_DIR_NAME
-        self.website_posts_path = self.website_path / self.POSTS_DIR_NAME  # TODO: Temporary solution for now. We might organize it them them differently
+        self.website_posts_path = self.website_path / self.POSTS_DIR_NAME
+        self.website_tags_path = self.website_path / self.TAGS_DIR_NAME
         self.posts_path = main_path / self.POSTS_DIR_NAME
         self.template_path = main_path / self.TEMPLATE_DIR_NAME
         self.template_environment = Environment(loader=FileSystemLoader(self.template_path), trim_blocks=True)
-        self.template_environment.globals.update({'website_name': self.name})
+        self.config = main_path / 'config.json'
+
+        # self.template_environment.globals.update({'website_name': self.name})
+        # self.name = main_path.resolve().name
+        # self.template_environment.globals['website_name'] = self.name
 
     def create(self):
         if self.is_pyblog():
@@ -39,8 +46,9 @@ class Pyblog:
         self.website_path.mkdir()
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
+        self.website_tags_path.mkdir()
         shutil.copytree(local_template_path, self.template_path)
-        print(f'Pyblog created successfully on {self.main_path}!')
+        print(f'New pyblog created successfully on {self.main_path}!')
 
     def is_pyblog(self) -> bool:
         """ Checks whether the current directory is a pyblog, i.e., it has the relevant paths"""
@@ -49,38 +57,43 @@ class Pyblog:
         else:
             return False
 
-    def build_home_page(self):
-        public_posts = self.get_all_public_posts()
-        public_posts.sort(key=lambda x: x[1].metadata['date'])
-        latest_posts = [{'path': str(self._get_target_html_path(post_path, self.website_posts_path).relative_to(self.website_path)),
-                         'title': post.metadata['title'],
-                         'date': post.metadata['date']} for (post_path, post) in public_posts[:self.HOME_MAX_POSTS]]
+    def build_home_page(self, posts: list[Post]):
         index_template = self.template_environment.get_template(self.INDEX_TEMPLATE)
-        index_html = index_template.render(latest_posts=latest_posts)
+        index_html = index_template.render(latest_posts=posts)
         target_path = self.website_path / 'index.html'
         target_path.write_text(index_html)
 
-    @staticmethod
-    def _get_target_html_path(input_path: Path, website_base_path: Path) -> Path:
-        return website_base_path / f'{input_path.stem}.html'
+    def build_tag_pages(self, all_posts: list[Post]):
+        all_tags = set([tag for post in all_posts for tag in post.tags])
+        grouped_posts = [(tag, [post for post in all_posts if tag in post.tags]) for tag in all_tags]
+
+        tag_template = self.template_environment.get_template(self.TAG_TEMPLATE)
+        for tag, group in grouped_posts:
+            tag_html = tag_template.render(tag=tag, latest_posts=group[:self.HOME_MAX_POSTS])
+            target_path = self.website_tags_path / f'{tag}.html'
+            target_path.write_text(tag_html)
+
+        all_tags_template = self.template_environment.get_template(self.ALL_TAGS_TEMPLATE)
+        all_tags_html = all_tags_template.render(all_tags=all_tags)
+        target_path = self.website_path / f'tags.html'
+        target_path.write_text(all_tags_html)
+
+    def _get_post_target_html_path(self, post_path: Path) -> Path:
+        return self.website_posts_path / post_path.parent.relative_to(self.posts_path) / f'{post_path.stem}.html'
 
     def get_all_public_posts(self) -> list[Post]:
-        all_posts = []
+        """ Retrieves and enriches all posts and sorts them by date """
+        all_public_posts = []
         for post_path in self.posts_path.rglob('*md'):
-            print(f'Processing {post_path}')
-            with post_path.open() as file:
-                raw_text = file.read()
-            post = Post(raw_text)
-            if post.metadata['draft'] != 'yes':
-                all_posts.append((post_path, post))
-        return all_posts
+            target_path = self._get_post_target_html_path(post_path)
+            post = Post(post_path, target_path, self.website_path)
+            if post.is_public():
+                all_public_posts.append(post)
+        all_public_posts.sort(key=lambda x: x.date, reverse=True)
+        return all_public_posts
 
-    def add_post(self, post_path: Path):
-        target_path = self._get_target_html_path(post_path, self.website_posts_path)
+    def build_post(self, post: Post):
         post_template = self.template_environment.get_template(self.POST_TEMPLATE)
-        with post_path.open() as file:
-            raw_text = file.read()
-        md_post = Post(raw_text)
-        html_content = md_post.get_markdown_html()
-        post_html = post_template.render(title=md_post.metadata['title'], content=html_content)
-        target_path.write_text(post_html)
+        html_content = post.get_markdown_html()
+        post_html = post_template.render(post=post, content=html_content)
+        post._html_target_path.write_text(post_html)  # TODO: Change it to something more beautiful!

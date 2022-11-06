@@ -7,37 +7,57 @@ There are two requirements that markdown files should fulfill in order to be con
 """
 import datetime as dt
 import re
+from pathlib import Path
 
 import markdown
 
 
 class Post:
     MANDATORY_LABELS = ['draft', 'date']
+    DEFAULT_TAG = 'blog'
+    INVALID_LABELS = ['_metadata', 'markdown_file_path', '_html_target_path', 'title', 'path']
     TITLE_REGEXP = re.compile(r'^\s?#\s(.*)', flags=re.MULTILINE)
     METADATA_REGEXP = re.compile(r'^\s?(\w+):\s(.+)', flags=re.MULTILINE)
 
-    def __init__(self, raw_text: str):
-        self.raw_text = raw_text.strip()
-        self.metadata = self.parse_metadata(raw_text.strip())
-        self.markdown = self.parse_markdown(self.metadata['title'], raw_text.strip())
+    def __init__(self, markdown_file_path: Path, html_target_path: Path, website_absolute_path: Path):
+        # self.raw_text = raw_text.strip()
+        self.markdown_file_path = markdown_file_path
+        self._html_target_path = html_target_path
+        self._metadata = self.parse_metadata(markdown_file_path)
+        self.path = html_target_path.relative_to(website_absolute_path)
+
+    def is_dirty(self) -> bool:
+        """ Checks whether the post needs to be rebuilt """
+        file_mtime = self.markdown_file_path.stat().st_mtime
+        target_mtime = self._html_target_path.stat().st_mtime if self._html_target_path.exists() else 0
+        return file_mtime > target_mtime
+
+    def is_public(self) -> bool:
+        return self._metadata['draft'] != 'yes'
+
+    def __getattr__(self, item):
+        return self._metadata[item]
 
     def get_markdown_html(self) -> str:
-        return markdown.markdown(self.markdown)
-
-    @staticmethod
-    def parse_markdown(title: str, raw_text: str) -> str:
-        """ Removes everything before the title (including it)"""
+        with self.markdown_file_path.open() as file:
+            raw_text = file.read()
+        title = self._metadata['title']
         index = raw_text.find(title)
         if index == -1:
             raise ValueError(f'The title {title} was not found in the text')
-        return raw_text[index + len(title):].strip()
+        markdown_text = raw_text[index + len(title):].strip()
+        return markdown.markdown(markdown_text)
 
     @staticmethod
-    def parse_metadata(raw_text: str) -> dict[str, str]:
+    def parse_metadata(path: Path) -> dict[str, str]:
         """
         Gets all the labels like "label: value" at the beginning of the post and also retrieve the title following
         this labels
+        TODO: Make it so that it doesn't read the whole file, iterating over each line individually
         """
+        with path.open() as file:
+            raw_text = file.read().strip()
+
         metadata_matches = []
         prev_match_end_pos = 0
         for idx, match in enumerate(Post.METADATA_REGEXP.finditer(raw_text)):
@@ -56,14 +76,20 @@ class Post:
         for match in metadata_matches:
             key = match.group(1).lower()
             value = match.group(2).lower()
-            if key == 'title':
+            if key in Post.INVALID_LABELS:
                 print(f'Invalid metadata label entry: {key}: {value}')
                 continue
             if key == 'date':
                 value = dt.date.fromisoformat(value)
+            elif key == 'tags' and '[' not in value:
+                value = [value]
             elif '[' in value:
                 value = [list_element.strip() for list_element in value.strip(' []').split(',')]
             metadata.update({key: value})
+
+        # add default tag if nothing is found
+        if 'tags' not in metadata:
+            metadata.update({'tags': [Post.DEFAULT_TAG]})
 
         # Parse title which is also part of the metadata
         last_metadata_end_pos = metadata_matches[-1].end() if metadata_matches else 0

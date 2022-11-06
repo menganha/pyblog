@@ -2,7 +2,7 @@ import textwrap
 
 import pytest
 
-from pyblog.blog import Pyblog
+from pyblog.blog import Blog
 
 
 @pytest.fixture()
@@ -12,7 +12,7 @@ def blog_path(tmp_path):
 
 @pytest.fixture()
 def pyblog(blog_path):
-    return Pyblog(blog_path)
+    return Blog(blog_path)
 
 
 @pytest.fixture()
