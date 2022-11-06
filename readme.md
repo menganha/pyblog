@@ -1,3 +1,3 @@
-# PyBlog
+# Pyblog: A static blog site generator
 
-Pyblog is a script that allows you to create blogs by writing posts in markdown.
+Pyblog allows you to create simple and customizable blog sites with minimal effort.
