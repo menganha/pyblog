@@ -1,3 +1,5 @@
+import datetime as dt
+import json
 import shutil
 from pathlib import Path
 
@@ -25,14 +27,10 @@ class Blog:
         self.website_tags_path = self.website_path / self.TAGS_DIR_NAME
         self.posts_path = main_path / self.POSTS_DIR_NAME
         self.template_path = main_path / self.TEMPLATE_DIR_NAME
-        self.template_environment = Environment(loader=FileSystemLoader(self.template_path), trim_blocks=True)
-        self.config = main_path / 'config.json'
+        self.template_environment = Environment(loader=FileSystemLoader(self.template_path), trim_blocks=True, lstrip_blocks=True)
+        self.config_path = main_path / self.CONFIG_FILE_NAME
 
-        # self.template_environment.globals.update({'website_name': self.name})
-        # self.name = main_path.resolve().name
-        # self.template_environment.globals['website_name'] = self.name
-
-    def create(self):
+    def create(self, website_name: str, website_author: str):
         if self.is_pyblog():
             print(f'Error: Input path {self.main_path} seems to contain another pyblog')
             return 1
@@ -48,11 +46,22 @@ class Blog:
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
         shutil.copytree(local_template_path, self.template_path)
-        print(f'New pyblog created successfully on {self.main_path}!')
+
+        # Create config file. TODO: think of adding, e.g., a enum for better control
+        config = {'website_name': website_name, 'website_author': website_author, 'current_year': dt.date.today().year}
+        json_encoded = json.dumps(config)
+        self.config_path.write_text(json_encoded)
+
+    def load_config(self):
+        """ Loads the config file and applies the globals to the environment """
+        with self.config_path.open() as file:
+            json_encoded = file.read()
+        config = json.loads(json_encoded)
+        self.template_environment.globals.update(config)
 
     def is_pyblog(self) -> bool:
         """ Checks whether the current directory is a pyblog, i.e., it has the relevant paths"""
-        if self.website_path.exists() and self.posts_path.exists() and self.template_path.exists():
+        if self.website_path.exists() and self.posts_path.exists() and self.template_path.exists() and self.config_path.exists():
             return True
         else:
             return False

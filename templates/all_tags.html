@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block website_header %} {{ website_name }} {% endblock %}
+{% block website_header %}Tags | {{ website_name }}{% endblock %}
 
 {% block content %}
-<h2> {{ tag }} category </h2>
-<article class="post">
+<h2>List of tags</h2>
+<section class="post">
     <div class="tag_container">
         {% for tag in all_tags %}
         <a href="/tags/{{ tag }}.html">{{ tag }}</a>
         {% endfor %}
     </div>
-</article>
+</section>
 {% endblock %}

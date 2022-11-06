@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block website_header %} {{ website_name }} {% endblock %}
+{% block website_header %}{{ website_name }}{% endblock %}
 
 {% block content %}
-<h2>Latest Posts</h2>
-<article class="post">
+<h2>{% block section_title %}Latest Posts{% endblock %}</h2>
+
+<section class="post">
     {% for post in latest_posts %}
     <div class="post_container">
         <h2><a href="/{{ post.path }}">{{ post.title }}</a>. {{ post.date }}</h2>
     </div>
     {% endfor %}
-</article>
+</section>
 {% endblock %}

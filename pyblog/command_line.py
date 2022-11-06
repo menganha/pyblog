@@ -13,6 +13,8 @@ def parse_cli_arguments():
 
     parser_init = subparsers.add_parser('init', help='Creates a new pyblog website')
     parser_init.add_argument('path', help='Initializes all the relevant files for the website on the input path')
+    parser_init.add_argument('name', help='Name of the website')
+    parser_init.add_argument('author', help='Author of the website')
 
     subparsers.add_parser('build', help='Builds the website')
     subparsers.add_parser('test', help='Creates a local server to check the blog locally')
@@ -23,12 +25,14 @@ if __name__ == '__main__':
     args = parse_cli_arguments()
     if args.command == 'init':
         pyblog = Blog(Path(args.path).expanduser())
-        pyblog.create()
+        pyblog.create(args.name, args.author)
+        print(f'Pyblog "{args.name}" successfully created on {args.path}!')
     elif args.command == 'build':
         pyblog = Blog(Path('.'))
         if not pyblog.is_pyblog():
             print('Error: The current path does not contain a pyblog')
         else:
+            pyblog.load_config()
             all_public_posts = pyblog.get_all_public_posts()
             latest_posts = all_public_posts[:pyblog.HOME_MAX_POSTS]  # Maybe handle this within the pyblog instance
             print(f'Building index...')
