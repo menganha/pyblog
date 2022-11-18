@@ -3,9 +3,7 @@
 
 {% block content %}
 <article class="post">
-    <div class="post_container">
-        <h2>{{ post.title }}</h2>
-        {{ content | indent(8) }}
-    </div>
+    <h2>{{ post.title }}</h2>
+    {{ content | indent(4) }}
 </article>
 {% endblock %}

@@ -1,0 +1,15 @@
+@charset "utf-8";
+
+body    { font: 17px/25px 'Arial', serif;
+          margin: 0; padding: 50px; font-weight: 400; color: black; }
+a       { color: #FFFFFF; font-weight: 400; }
+a:hover { color: #FFFFFF; }
+
+article.post > h2 {
+    margin: 15px 0 15px 0;
+    font-weight: 100;
+    }
+
+/* headlines */
+h1, h2, h3, h4, h5, h6      { font-family: 'ARIAL', sans-serif;
+                              font-weight: 400; color: #3D3F4F }

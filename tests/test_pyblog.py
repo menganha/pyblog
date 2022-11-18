@@ -33,15 +33,15 @@ def post_path(tmp_path):
 def test_create_pyblog(pyblog, blog_path):
     pyblog.create()
 
-    expected_template_path = blog_path / 'templates'
+    expected_data_path = blog_path / 'data'
     expected_website_path = blog_path / 'public'
     expected_posts_path = blog_path / 'posts'
 
     assert blog_path.exists()
-    assert expected_template_path.exists()
+    assert expected_data_path.exists()
     assert expected_website_path.exists()
     assert expected_posts_path.exists()
-    assert len(list(expected_template_path.iterdir())) == 1
+    assert len(list(expected_data_path.iterdir())) == 2
 
 
 def test_add_post(pyblog, post_path):

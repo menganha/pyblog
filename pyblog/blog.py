@@ -1,6 +1,8 @@
 import datetime as dt
 import json
 import shutil
+import sys
+from importlib import resources
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -13,42 +15,50 @@ class Blog:
     WEBSITE_DIR_NAME = 'public'
     POSTS_DIR_NAME = 'posts'
     TAGS_DIR_NAME = 'tags'
-    HOME_MAX_POSTS = 10
+    DATA_DIR_NAME = 'data'
     POST_TEMPLATE = 'post.html'
     TAG_TEMPLATE = 'tag.html'
     ALL_TAGS_TEMPLATE = 'all_tags.html'
     INDEX_TEMPLATE = 'index.html'
+    CSS_FILE_NAME = 'style.css'
     CONFIG_FILE_NAME = 'config.json'
+    HOME_MAX_POSTS = 10
 
     def __init__(self, main_path: Path):
         self.main_path = main_path
+
         self.website_path = main_path / self.WEBSITE_DIR_NAME
         self.website_posts_path = self.website_path / self.POSTS_DIR_NAME
         self.website_tags_path = self.website_path / self.TAGS_DIR_NAME
+
         self.posts_path = main_path / self.POSTS_DIR_NAME
-        self.template_path = main_path / self.TEMPLATE_DIR_NAME
+        self.data_path = main_path / self.DATA_DIR_NAME
+        self.template_path = self.data_path / self.TEMPLATE_DIR_NAME
+        self.css_file_path = self.data_path / self.CSS_FILE_NAME
+
         self.template_environment = Environment(loader=FileSystemLoader(self.template_path), trim_blocks=True, lstrip_blocks=True)
+        self.template_environment.globals.update({'current_year': f'{dt.date.today().year}'})
         self.config_path = main_path / self.CONFIG_FILE_NAME
 
-    def create(self, website_name: str, website_author: str):
+    def create(self, author: str = None, website_name: str = None):
         if self.is_pyblog():
-            print(f'Error: Input path {self.main_path} seems to contain another pyblog')
-            return 1
+            print(f'Error! Input path {self.main_path.resolve()} seems to contain another pyblog')
+            sys.exit(1)
         elif not self.is_pyblog() and self.main_path.exists():
-            print(f'Error: Input path {self.main_path} already exists. Please choose a another path to create a pyblog')
-            return
-
-        local_template_path = Path(__file__).parent.parent / self.TEMPLATE_DIR_NAME
+            print(f'Error! Input path {self.main_path.resolve()} already exists. Please choose a another path to create a pyblog')
+            sys.exit(1)
 
         self.main_path.mkdir(parents=True)
         self.website_path.mkdir()
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
-        shutil.copytree(local_template_path, self.template_path)
+        with resources.as_file(resources.files('pyblog') / self.DATA_DIR_NAME) as data_directory:
+            shutil.copytree(data_directory, self.data_path)
 
         # Create config file. TODO: think of adding, e.g., a enum for better control
-        config = {'website_name': website_name, 'website_author': website_author, 'current_year': dt.date.today().year}
+        config = {'website_name': website_name if website_name else self.main_path.resolve().name,
+                  'author': author if author else ''}
         json_encoded = json.dumps(config)
         self.config_path.write_text(json_encoded)
 
