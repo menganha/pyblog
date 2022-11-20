@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import shutil
 import sys
+from collections.abc import Iterator
 from importlib import resources
 from pathlib import Path
 
@@ -20,7 +21,7 @@ class Blog:
     TAG_TEMPLATE = 'tag.html'
     ALL_TAGS_TEMPLATE = 'all_tags.html'
     INDEX_TEMPLATE = 'index.html'
-    CSS_FILE_NAME = 'style.css'
+    CSS_FILE_NAME = 'data/style.css'
     CONFIG_FILE_NAME = 'config.json'
     HOME_MAX_POSTS = 10
 
@@ -40,7 +41,7 @@ class Blog:
         self.template_environment.globals.update({'current_year': f'{dt.date.today().year}'})
         self.config_path = main_path / self.CONFIG_FILE_NAME
 
-    def create(self, author: str = None, website_name: str = None):
+    def create(self):
         if self.is_pyblog():
             print(f'Error! Input path {self.main_path.resolve()} seems to contain another pyblog')
             sys.exit(1)
@@ -57,8 +58,7 @@ class Blog:
             shutil.copytree(data_directory, self.data_path)
 
         # Create config file. TODO: think of adding, e.g., a enum for better control
-        config = {'website_name': website_name if website_name else self.main_path.resolve().name,
-                  'author': author if author else ''}
+        config = {'website_name': self.main_path.resolve().name, 'author': ''}
         json_encoded = json.dumps(config)
         self.config_path.write_text(json_encoded)
 
@@ -77,6 +77,7 @@ class Blog:
             return False
 
     def build_home_page(self, posts: list[Post]):
+        # TODO!!!!!!!!!!!!!!!!!!!: Pass a container containing the website path to properly link it?
         index_template = self.template_environment.get_template(self.INDEX_TEMPLATE)
         index_html = index_template.render(latest_posts=posts)
         target_path = self.website_path / 'index.html'
@@ -97,22 +98,21 @@ class Blog:
         target_path = self.website_path / f'tags.html'
         target_path.write_text(all_tags_html)
 
-    def _get_post_target_html_path(self, post_path: Path) -> Path:
-        return self.website_posts_path / post_path.parent.relative_to(self.posts_path) / f'{post_path.stem}.html'
+    def markdown_post_paths(self) -> Iterator[Path]:
+        return self.posts_path.rglob('*md')
 
-    def get_all_public_posts(self) -> list[Post]:
-        """ Retrieves and enriches all posts and sorts them by date """
-        all_public_posts = []
-        for post_path in self.posts_path.rglob('*md'):
-            target_path = self._get_post_target_html_path(post_path)
-            post = Post(post_path, target_path, self.website_path)
-            if post.is_public():
-                all_public_posts.append(post)
-        all_public_posts.sort(key=lambda x: x.date, reverse=True)
-        return all_public_posts
+    def orphan_target_paths(self) -> Iterator[Path]:
+        """ Returns the html paths of the current build that do not have a corresponding markdown path """
+        for target_path in self.website_posts_path.rglob('*.html'):
+            if not list(self.posts_path.rglob(f'{target_path.stem}.md')):
+                yield target_path
 
     def build_post(self, post: Post):
         post_template = self.template_environment.get_template(self.POST_TEMPLATE)
-        html_content = post.get_markdown_html()
-        post_html = post_template.render(post=post, content=html_content)
-        post._html_target_path.write_text(post_html)  # TODO: Change it to something more beautiful!
+        html_content = post.get_html()
+        html_page = post_template.render(post=post, content=html_content)
+        post.target_path.write_text(html_page)
+
+    def get_post_target_html_path(self, post_path: Path) -> Path:
+        """ Target paths are named with the same name of the input markdown file name """
+        return self.website_posts_path / post_path.parent.relative_to(self.posts_path) / f'{post_path.stem}.html'

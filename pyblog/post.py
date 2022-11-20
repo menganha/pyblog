@@ -15,21 +15,21 @@ import markdown
 class Post:
     MANDATORY_LABELS = ['draft', 'date']
     DEFAULT_TAG = 'blog'
-    INVALID_LABELS = ['_metadata', 'markdown_file_path', '_html_target_path', 'title', 'path']
+    INVALID_LABELS = ['_metadata', 'target_path', 'source_path', 'title']
+
     TITLE_REGEXP = re.compile(r'^\s?#\s(.*)', flags=re.MULTILINE)
     METADATA_REGEXP = re.compile(r'^\s?(\w+):\s(.+)', flags=re.MULTILINE)
 
-    def __init__(self, markdown_file_path: Path, html_target_path: Path, website_absolute_path: Path):
+    def __init__(self, source_path: Path, target_path: Path):
         # self.raw_text = raw_text.strip()
-        self.markdown_file_path = markdown_file_path
-        self._html_target_path = html_target_path
-        self._metadata = self.parse_metadata(markdown_file_path)
-        self.path = html_target_path.relative_to(website_absolute_path)
+        self.source_path = source_path
+        self.target_path = target_path
+        self._metadata = self.parse_metadata()
 
-    def is_dirty(self) -> bool:
+    def is_dirty(self, target_path: Path) -> bool:
         """ Checks whether the post needs to be rebuilt """
-        file_mtime = self.markdown_file_path.stat().st_mtime
-        target_mtime = self._html_target_path.stat().st_mtime if self._html_target_path.exists() else 0
+        file_mtime = self.source_path.stat().st_mtime
+        target_mtime = target_path.stat().st_mtime if target_path.exists() else 0
         return file_mtime > target_mtime
 
     def is_public(self) -> bool:
@@ -38,8 +38,9 @@ class Post:
     def __getattr__(self, item):
         return self._metadata[item]
 
-    def get_markdown_html(self) -> str:
-        with self.markdown_file_path.open() as file:
+    def get_html(self) -> str:
+        """ transforms markdown to html """
+        with self.source_path.open() as file:
             raw_text = file.read()
         title = self._metadata['title']
         index = raw_text.find(title)
@@ -48,14 +49,13 @@ class Post:
         markdown_text = raw_text[index + len(title):].strip()
         return markdown.markdown(markdown_text)
 
-    @staticmethod
-    def parse_metadata(path: Path) -> dict[str, str]:
+    def parse_metadata(self) -> dict[str, str]:
         """
         Gets all the labels like "label: value" at the beginning of the post and also retrieve the title following
         this labels
         TODO: Make it so that it doesn't read the whole file, iterating over each line individually
         """
-        with path.open() as file:
+        with self.source_path.open() as file:
             raw_text = file.read().strip()
 
         metadata_matches = []
