@@ -98,7 +98,7 @@ def test_parse_markdown(valid_text_path, dummy_target_path):
     <p>definition: not a tag</p>
     <p>it shouldn't be considered as such.</p>
     """).strip()
-    assert post.get_html() == expected_html
+    assert post.get_content_in_html() == expected_html
 
 
 def test_invalid_initializer_1(invalid_text_path_1, dummy_target_path):

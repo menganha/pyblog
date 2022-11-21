@@ -38,8 +38,8 @@ class Post:
     def __getattr__(self, item):
         return self._metadata[item]
 
-    def get_html(self) -> str:
-        """ transforms markdown to html """
+    def get_content_in_html(self) -> str:
+        """ Transforms content from markdown to html """
         with self.source_path.open() as file:
             raw_text = file.read()
         title = self._metadata['title']

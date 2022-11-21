@@ -109,7 +109,7 @@ class Blog:
 
     def build_post(self, post: Post):
         post_template = self.template_environment.get_template(self.POST_TEMPLATE)
-        html_content = post.get_html()
+        html_content = post.get_content_in_html()
         html_page = post_template.render(post=post, content=html_content)
         post.target_path.write_text(html_page)
 
