@@ -21,7 +21,7 @@ class Blog:
     TAG_TEMPLATE = 'tag.html'
     ALL_TAGS_TEMPLATE = 'all_tags.html'
     INDEX_TEMPLATE = 'index.html'
-    CSS_FILE_NAME = 'data/style.css'
+    CSS_FILE_NAME = 'style.css'
     CONFIG_FILE_NAME = 'config.json'
     HOME_MAX_POSTS = 10
 
@@ -38,7 +38,8 @@ class Blog:
         self.css_file_path = self.data_path / self.CSS_FILE_NAME
 
         self.template_environment = Environment(loader=FileSystemLoader(self.template_path), trim_blocks=True, lstrip_blocks=True)
-        self.template_environment.globals.update({'current_year': f'{dt.date.today().year}'})
+        self.template_environment.globals.update({'current_year': f'{dt.date.today().year}',
+                                                  'website_path': self.website_path})
         self.config_path = main_path / self.CONFIG_FILE_NAME
 
     def create(self):
@@ -54,13 +55,7 @@ class Blog:
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
-        with resources.as_file(resources.files('pyblog') / self.DATA_DIR_NAME) as data_directory:
-            shutil.copytree(data_directory, self.data_path)
-
-        # Create config file. TODO: think of adding, e.g., a enum for better control
-        config = {'website_name': self.main_path.resolve().name, 'author': ''}
-        json_encoded = json.dumps(config)
-        self.config_path.write_text(json_encoded)
+        self.save_default_config()
 
     def load_config(self):
         """ Loads the config file and applies the globals to the environment """
@@ -68,6 +63,16 @@ class Blog:
             json_encoded = file.read()
         config = json.loads(json_encoded)
         self.template_environment.globals.update(config)
+
+    def save_default_config(self):
+        with resources.as_file(resources.files('pyblog') / self.DATA_DIR_NAME) as data_directory:
+            shutil.copytree(data_directory, self.data_path, dirs_exist_ok=True)
+
+        # Create config file. TODO: think of adding, e.g., a enum for better control
+        config = {'website_name': self.main_path.resolve().name, 'website_author': '',
+                  'website_description': ''}
+        json_encoded = json.dumps(config)
+        self.config_path.write_text(json_encoded)
 
     def is_pyblog(self) -> bool:
         """ Checks whether the current directory is a pyblog, i.e., it has the relevant paths"""
@@ -77,7 +82,6 @@ class Blog:
             return False
 
     def build_home_page(self, posts: list[Post]):
-        # TODO!!!!!!!!!!!!!!!!!!!: Pass a container containing the website path to properly link it?
         index_template = self.template_environment.get_template(self.INDEX_TEMPLATE)
         index_html = index_template.render(latest_posts=posts)
         target_path = self.website_path / 'index.html'

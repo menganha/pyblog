@@ -4,7 +4,9 @@
 <head>
     {% block head %}
     <title>{% block website_header %}{% endblock %}</title>
+    {% if website_description %}
     <meta name="description" content="My page is about something"/>
+    {% endif %}
     <meta name="viewport" content="width=device-width"/>
     <meta charset="UTF-8"/>
     <link rel="stylesheet" href="/style.css"/>
@@ -32,7 +34,11 @@
 </main>
 
 <footer>
+    {% if website_author %}
     <p>&copy; Copyright {{ current_year }} by {{ website_author }} </p>
+    {% else %}
+    <p>&copy; Copyright {{ current_year }}</p>
+    {% endif %}
 </footer>
 
 </body>

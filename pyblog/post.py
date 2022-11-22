@@ -21,7 +21,6 @@ class Post:
     METADATA_REGEXP = re.compile(r'^\s?(\w+):\s(.+)', flags=re.MULTILINE)
 
     def __init__(self, source_path: Path, target_path: Path):
-        # self.raw_text = raw_text.strip()
         self.source_path = source_path
         self.target_path = target_path
         self._metadata = self.parse_metadata()

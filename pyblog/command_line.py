@@ -24,6 +24,8 @@ def parse_cli_arguments():
     parser_build = subparsers.add_parser('build', help='Builds the website')
     parser_build.add_argument('--force', help='Force a clean rebuild of the entire website', action='store_true')
 
+    parser_build = subparsers.add_parser('rollback_config', help='Sets the default templates and style css file')
+
     subparsers.add_parser('test', help='Creates a local server to check the blog locally')
 
     return parser.parse_args()
@@ -32,7 +34,7 @@ def parse_cli_arguments():
 def init(path: Path):
     pyblog = Blog(path.expanduser())
     pyblog.create()
-    print(f' New Pyblog successfully created on {path}!')
+    print(f'New Pyblog successfully created on {path}!')
 
 
 def build(blog: Blog, force: bool):
@@ -45,24 +47,26 @@ def build(blog: Blog, force: bool):
         post = Post(path, target_path)
         all_public_posts.append(post)
         if post.is_public() and (post.is_dirty(target_path) or force):
-            print(f'Building post {post.path}...')
+            print(f'Building post {post.source_path}...')
             blog.build_post(post)
             if not needs_rebuild:
                 needs_rebuild = True
 
-    all_public_posts.sort(key=lambda x: x.date, reverse=True)
-
     # Cleanup: If a post was deleted after it had been published, then we need to delete the corresponding html file.
     for target_path in blog.orphan_target_paths():
+        print(f'Deleting orphan page: {target_path}')
         target_path.unlink()
 
-    if needs_rebuild:
+    if not needs_rebuild:
+        print('No new posts found!')
+    else:
+        all_public_posts.sort(key=lambda x: x.date, reverse=True)
         latest_posts = all_public_posts[:blog.HOME_MAX_POSTS]  # Maybe handle this within the blog instance
         print(f'Building index...')
         blog.build_home_page(latest_posts)
         print(f'Building tag pages...')
         blog.build_tag_pages(all_public_posts)
-    print(f'Done!')
+        print(f'Done!')
 
 
 def serve(blog: Blog):
@@ -75,11 +79,16 @@ def serve(blog: Blog):
             httpd.server_close()
 
 
+def rollback_config(blog: Blog):
+    blog.save_default_config()
+    print('Setting the website configuration to the defaults')
+
+
 def execute():
     args = parse_cli_arguments()
 
     if args.command == 'init':
-        init(args.path)
+        init(Path(args.path))
 
     else:
         pyblog = Blog(Path('.'))
@@ -92,6 +101,9 @@ def execute():
 
         elif args.command == 'test':
             serve(pyblog)
+
+        elif args.command == 'rollback_config':
+            rollback_config(pyblog)
 
 
 if __name__ == '__main__':
