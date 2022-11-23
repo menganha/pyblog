@@ -6,13 +6,14 @@ from collections.abc import Iterator
 from importlib import resources
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, PackageLoader
 
 from pyblog.post import Post
 
 
 class Blog:
     TEMPLATE_DIR_NAME = 'templates'
+    STYLE_SHEET_DIR_NAME = 'style_sheets'
     WEBSITE_DIR_NAME = 'public'
     POSTS_DIR_NAME = 'posts'
     TAGS_DIR_NAME = 'tags'
@@ -23,6 +24,7 @@ class Blog:
     INDEX_TEMPLATE = 'index.html'
     CSS_FILE_NAME = 'style.css'
     CONFIG_FILE_NAME = 'config.json'
+    LAST_MODIFIED_FILE_NAME = '.pyblog.modified'
     HOME_MAX_POSTS = 10
 
     def __init__(self, main_path: Path):
@@ -34,10 +36,12 @@ class Blog:
 
         self.posts_path = main_path / self.POSTS_DIR_NAME
         self.data_path = main_path / self.DATA_DIR_NAME
-        self.template_path = self.data_path / self.TEMPLATE_DIR_NAME
-        self.css_file_path = self.data_path / self.CSS_FILE_NAME
+        self.templates_path = self.data_path / self.TEMPLATE_DIR_NAME
+        self.style_sheets_path = self.data_path / self.STYLE_SHEET_DIR_NAME
+        self.default_css_file_path = self.style_sheets_path / self.CSS_FILE_NAME
+        self.last_modified_file_path = self.main_path / self.LAST_MODIFIED_FILE_NAME
 
-        self.template_environment = Environment(loader=FileSystemLoader(self.template_path), trim_blocks=True, lstrip_blocks=True)
+        self.template_environment = Environment(loader=PackageLoader('pyblog'), trim_blocks=True, lstrip_blocks=True)
         self.template_environment.globals.update({'current_year': f'{dt.date.today().year}',
                                                   'website_path': self.website_path})
         self.config_path = main_path / self.CONFIG_FILE_NAME
@@ -55,6 +59,7 @@ class Blog:
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
+        self.last_modified_file_path.touch()
         self.save_default_config()
 
     def load_config(self):
@@ -68,15 +73,17 @@ class Blog:
         with resources.as_file(resources.files('pyblog') / self.DATA_DIR_NAME) as data_directory:
             shutil.copytree(data_directory, self.data_path, dirs_exist_ok=True)
 
-        # Create config file. TODO: think of adding, e.g., a enum for better control
-        config = {'website_name': self.main_path.resolve().name, 'website_author': '',
-                  'website_description': ''}
+        # TODO: think of adding a enum or something else for better control of all config variables
+        config = {'website_name': self.main_path.resolve().name,
+                  'website_author': '',
+                  'website_description': '',
+                  'website_keywords': ''}
         json_encoded = json.dumps(config)
         self.config_path.write_text(json_encoded)
 
     def is_pyblog(self) -> bool:
         """ Checks whether the current directory is a pyblog, i.e., it has the relevant paths"""
-        if self.website_path.exists() and self.posts_path.exists() and self.template_path.exists() and self.config_path.exists():
+        if self.website_path.exists() and self.posts_path.exists() and self.data_path.exists() and self.config_path.exists():
             return True
         else:
             return False

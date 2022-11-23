@@ -24,8 +24,6 @@ def parse_cli_arguments():
     parser_build = subparsers.add_parser('build', help='Builds the website')
     parser_build.add_argument('--force', help='Force a clean rebuild of the entire website', action='store_true')
 
-    parser_build = subparsers.add_parser('rollback_config', help='Sets the default templates and style css file')
-
     subparsers.add_parser('test', help='Creates a local server to check the blog locally')
 
     return parser.parse_args()
@@ -34,19 +32,25 @@ def parse_cli_arguments():
 def init(path: Path):
     pyblog = Blog(path.expanduser())
     pyblog.create()
-    print(f'New Pyblog successfully created on {path}!')
+    print(f'New Pyblog successfully created on {path.absolute()}!')
 
 
 def build(blog: Blog, force: bool):
     blog.load_config()
-    shutil.copy(blog.css_file_path, blog.website_path)
+    shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
     all_public_posts = []
     needs_rebuild = False
+
+    if blog.config_path.stat().st_mtime > blog.last_modified_file_path.stat().st_mtime:
+        print(f'The config.json file has been modified. Rebuilding the whole site.')
+        needs_rebuild = True
+        blog.last_modified_file_path.touch(exist_ok=True)
+
     for path in blog.markdown_post_paths():
         target_path = blog.get_post_target_html_path(path)
         post = Post(path, target_path)
         all_public_posts.append(post)
-        if post.is_public() and (post.is_dirty(target_path) or force):
+        if post.is_public() and (post.is_dirty(target_path) or force or needs_rebuild):
             print(f'Building post {post.source_path}...')
             blog.build_post(post)
             if not needs_rebuild:
@@ -77,11 +81,6 @@ def serve(blog: Blog):
             httpd.serve_forever()
         except KeyboardInterrupt:
             httpd.server_close()
-
-
-def rollback_config(blog: Blog):
-    blog.save_default_config()
-    print('Setting the website configuration to the defaults')
 
 
 def execute():

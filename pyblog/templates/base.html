@@ -5,9 +5,15 @@
     {% block head %}
     <title>{% block website_header %}{% endblock %}</title>
     {% if website_description %}
-    <meta name="description" content="My page is about something"/>
+    <meta name="description" content="{{ website_description }}"/>
     {% endif %}
-    <meta name="viewport" content="width=device-width"/>
+    {% if website_author %}
+    <meta name="author" content="{{ website_author }}"/>
+    {% endif %}
+    {% if website_keywords %}
+    <meta name="keywords" content="{{ website_keywords }}"/>
+    {% endif %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta charset="UTF-8"/>
     <link rel="stylesheet" href="/style.css"/>
     {% endblock %}

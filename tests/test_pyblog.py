@@ -45,7 +45,7 @@ def test_create_pyblog(pyblog, blog_path):
     assert expected_data_path.exists()
     assert expected_website_path.exists()
     assert expected_posts_path.exists()
-    assert len(list(expected_data_path.iterdir())) == 2
+    assert len(list(expected_data_path.iterdir())) == 1
 
 
 def test_is_pyblog(pyblog):

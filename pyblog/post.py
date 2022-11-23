@@ -51,7 +51,7 @@ class Post:
     def parse_metadata(self) -> dict[str, str]:
         """
         Gets all the labels like "label: value" at the beginning of the post and also retrieve the title following
-        this labels
+        this label
         TODO: Make it so that it doesn't read the whole file, iterating over each line individually
         """
         with self.source_path.open() as file:
