@@ -1,15 +1,38 @@
 @charset "utf-8";
 
-body    { font: 17px/25px 'Arial', serif;
-          margin: 0; padding: 50px; font-weight: 400; color: black; }
-a       { color: #FFFFFF; font-weight: 400; }
-a:hover { color: #FFFFFF; }
+body    { font: 17px/25px Verdana, sans-serif;
+          font-weight: normal;
+          margin: 40px auto;
+          max-width: 880px;
+          padding: 0 auto;  
+          color: black;}
+a       { color: black; 
+          font-weight: normal; }
+a:hover { color: black; }
 
-article.post > h2 {
-    margin: 15px 0 15px 0;
-    font-weight: 100;
-    }
+/* navigation */
+
+header { padding: 0px; margin-bottom: 40px; overflow: hidden}
+header div#title {float: left; }
+header nav { float: right; }
+header nav ul { margin:0; padding:0;} /* We have to reset hard these properties as they have non-zero defaults*/
+header nav ul li { display: inline; padding: 0 5px 0 5px }
 
 /* headlines */
-h1, h2, h3, h4, h5, h6      { font-family: 'ARIAL', sans-serif;
-                              font-weight: 400; color: #3D3F4F }
+h1, h2, h3, h4, h5, h6      { font-family: Georgia, serif;
+                              font-weight: bold; 
+                              color: black;}
+
+/* main */
+main { margin: 0; padding: 0 40px 20px 40px}
+
+/* post */
+section div.post_container {overflow: hidden}
+section div.post_container span { padding: 5px 0; float: left}
+section div.post_container h2 { font-size: 20px; float: right}
+
+
+/* footer */
+footer { margin: 0; 
+         padding: 0 0px;
+         text-align: right;}
