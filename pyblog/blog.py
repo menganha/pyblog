@@ -59,8 +59,8 @@ class Blog:
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
-        self.last_modified_file_path.touch()
         self.save_default_config()
+        self.last_modified_file_path.touch()
 
     def load_config(self):
         """ Loads the config file and applies the globals to the environment """

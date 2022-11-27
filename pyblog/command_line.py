@@ -37,12 +37,16 @@ def init(path: Path):
 
 def build(blog: Blog, force: bool):
     blog.load_config()
-    shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
     all_public_posts = []
     needs_rebuild = False
 
+    if blog.style_sheets_path.stat().st_mtime > blog.last_modified_file_path.stat().st_mtime:
+        print(f'The style.css file has been modified. Copying new version to site...')
+        shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
+        blog.last_modified_file_path.touch(exist_ok=True)
+
     if blog.config_path.stat().st_mtime > blog.last_modified_file_path.stat().st_mtime:
-        print(f'The config.json file has been modified. Rebuilding the whole site.')
+        print(f'The config.json file has been modified. Rebuilding whole site...')
         needs_rebuild = True
         blog.last_modified_file_path.touch(exist_ok=True)
 
@@ -80,6 +84,7 @@ def serve(blog: Blog):
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
+            httpd.shutdown()
             httpd.server_close()
 
 
@@ -100,9 +105,6 @@ def execute():
 
         elif args.command == 'test':
             serve(pyblog)
-
-        elif args.command == 'rollback_config':
-            rollback_config(pyblog)
 
 
 if __name__ == '__main__':
