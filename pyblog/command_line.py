@@ -1,5 +1,4 @@
 import argparse
-import functools
 import http.server
 import shutil
 import socketserver
@@ -40,15 +39,16 @@ def build(blog: Blog, force: bool):
     all_public_posts = []
     needs_rebuild = False
 
-    if blog.style_sheets_path.stat().st_mtime > blog.last_modified_file_path.stat().st_mtime:
+    if blog.is_style_sheet_updated():
         print(f'The style.css file has been modified. Copying new version to site...')
         shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
-        blog.last_modified_file_path.touch(exist_ok=True)
 
-    if blog.config_path.stat().st_mtime > blog.last_modified_file_path.stat().st_mtime:
+    if blog.is_config_file_updated():
         print(f'The config.json file has been modified. Rebuilding whole site...')
         needs_rebuild = True
-        blog.last_modified_file_path.touch(exist_ok=True)
+
+    if blog.is_config_file_updated() or blog.is_style_sheet_updated():
+        blog.update_last_build_file()
 
     for path in blog.markdown_post_paths():
         target_path = blog.get_post_target_html_path(path)
@@ -73,17 +73,24 @@ def build(blog: Blog, force: bool):
         print(f'Building index...')
         blog.build_home_page(latest_posts)
         print(f'Building tag pages...')
-        blog.build_tag_pages(all_public_posts)
+        blog.build_tag_page(all_public_posts)
         print(f'Done!')
 
 
-def serve(blog: Blog):
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=blog.website_path)
-    with socketserver.TCPServer((DEFAULT_TEST_HOST, DEFAULT_TEST_PORT), handler) as httpd:
-        print(f'Test server running on: http://{DEFAULT_TEST_HOST}:{DEFAULT_TEST_PORT}')
+def serve(filepath_to_serve: Path):
+    class SimpleHTTPRequestHandlerDirectory(http.server.SimpleHTTPRequestHandler):
+        """ Initializes the simple request handler with the blog directory """
+
+        def __init__(self, *args, **kwargs):
+            kwargs['directory'] = filepath_to_serve
+            super().__init__(*args, **kwargs)
+
+    with socketserver.TCPServer((DEFAULT_TEST_HOST, DEFAULT_TEST_PORT), SimpleHTTPRequestHandlerDirectory) as httpd:
         try:
+            print(f'Test server running on: http://{DEFAULT_TEST_HOST}:{DEFAULT_TEST_PORT}')
             httpd.serve_forever()
         except KeyboardInterrupt:
+            print('Shutting Down Server')
             httpd.shutdown()
             httpd.server_close()
 
@@ -104,7 +111,7 @@ def execute():
             build(pyblog, args.force)
 
         elif args.command == 'test':
-            serve(pyblog)
+            serve(pyblog.website_path)
 
 
 if __name__ == '__main__':

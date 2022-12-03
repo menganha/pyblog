@@ -24,7 +24,7 @@ class Blog:
     INDEX_TEMPLATE = 'index.html'
     CSS_FILE_NAME = 'style.css'
     CONFIG_FILE_NAME = 'config.json'
-    LAST_MODIFIED_FILE_NAME = '.pyblog.modified'
+    LAST_BUILD_FILE_NAME = '.pyblog_last_build'
     HOME_MAX_POSTS = 10
 
     def __init__(self, main_path: Path):
@@ -39,7 +39,7 @@ class Blog:
         self.templates_path = self.data_path / self.TEMPLATE_DIR_NAME
         self.style_sheets_path = self.data_path / self.STYLE_SHEET_DIR_NAME
         self.default_css_file_path = self.style_sheets_path / self.CSS_FILE_NAME
-        self.last_modified_file_path = self.main_path / self.LAST_MODIFIED_FILE_NAME
+        self.last_build_file_path = self.main_path / self.LAST_BUILD_FILE_NAME
 
         self.template_environment = Environment(loader=PackageLoader('pyblog'), trim_blocks=True, lstrip_blocks=True)
         self.template_environment.globals.update({'current_year': f'{dt.date.today().year}',
@@ -60,7 +60,7 @@ class Blog:
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
         self.save_default_config()
-        self.last_modified_file_path.touch()
+        self.update_last_build_file()
 
     def load_config(self):
         """ Loads the config file and applies the globals to the environment """
@@ -68,6 +68,16 @@ class Blog:
             json_encoded = file.read()
         config = json.loads(json_encoded)
         self.template_environment.globals.update(config)
+
+    def update_last_build_file(self):
+        """ Updates the modification time of the "last build" file which keeps track of the last build time"""
+        self.last_build_file_path.touch(exist_ok=True)
+
+    def is_style_sheet_updated(self) -> bool:
+        return self.style_sheets_path.stat().st_mtime > self.last_build_file_path.stat().st_mtime
+
+    def is_config_file_updated(self) -> bool:
+        return self.config_path.stat().st_mtime > self.last_build_file_path.stat().st_mtime
 
     def save_default_config(self):
         with resources.as_file(resources.files('pyblog') / self.DATA_DIR_NAME) as data_directory:
@@ -94,7 +104,7 @@ class Blog:
         target_path = self.website_path / 'index.html'
         target_path.write_text(index_html)
 
-    def build_tag_pages(self, all_posts: list[Post]):
+    def build_tag_page(self, all_posts: list[Post]):
         all_tags = set([tag for post in all_posts for tag in post.tags])
         grouped_posts = [(tag, [post for post in all_posts if tag in post.tags]) for tag in all_tags]
 

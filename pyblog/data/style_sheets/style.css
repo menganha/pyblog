@@ -13,7 +13,7 @@ a:hover { color: black; }
 /* navigation */
 
 header { padding: 0px; margin-bottom: 40px; overflow: hidden}
-header div#title {float: left; }
+header div#title { float: left; }
 header nav { float: right; }
 header nav ul { margin:0; padding:0;} /* We have to reset hard these properties as they have non-zero defaults*/
 header nav ul li { display: inline; padding: 0 5px 0 5px }

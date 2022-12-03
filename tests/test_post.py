@@ -119,3 +119,11 @@ def test_invalid_initializer_3(invalid_text_path_3, dummy_target_path):
 def test_invalid_initializer_4(invalid_text_path_3, dummy_target_path):
     with pytest.raises(ValueError):
         Post(invalid_text_path_3, dummy_target_path)
+
+
+def test_equality(valid_text_path, dummy_target_path, tmp_path):
+    post = Post(valid_text_path, dummy_target_path)
+    post_another_instance = Post(valid_text_path, dummy_target_path)
+    post_different_dummy_target_path = Post(valid_text_path, tmp_path / 'another_dummy_target.html')
+    assert post != post_different_dummy_target_path
+    assert post == post_another_instance

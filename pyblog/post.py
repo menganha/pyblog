@@ -104,3 +104,9 @@ class Post:
             raise ValueError(f'Not all mandatory labels {Post.MANDATORY_LABELS} found not found in metadata')
 
         return metadata
+
+    def __eq__(self, other: 'Post'):
+        if self.source_path == other.source_path and self.target_path == other.target_path and self._metadata == other._metadata:
+            return True
+        else:
+            return False
