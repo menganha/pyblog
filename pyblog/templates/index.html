@@ -12,4 +12,17 @@
     </div>
     {% endfor %}
 </section>
+
+{% if index %}
+<section class="pagination">
+    {% if previous_page %}
+    <a href="/{{ previous_page.relative_to(website_path) }}"> Previous </a>
+    {% endif %}
+    -- {{ index }} --
+    {% if next_page %}
+    <a href="/{{ next_page.relative_to(website_path) }}"> Next </a>
+    {% endif %}
+</section>
+{% endif %}
+
 {% endblock %}

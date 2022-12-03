@@ -69,9 +69,9 @@ def build(blog: Blog, force: bool):
         print('No new posts found!')
     else:
         all_public_posts.sort(key=lambda x: x.date, reverse=True)
-        latest_posts = all_public_posts[:blog.HOME_MAX_POSTS]  # Maybe handle this within the blog instance
+        # latest_posts = all_public_posts[:blog.HOME_MAX_POSTS]  # Maybe handle this within the blog instance
         print(f'Building index...')
-        blog.build_home_page(latest_posts)
+        blog.build_home_page(all_public_posts)
         print(f'Building tag pages...')
         blog.build_tag_page(all_public_posts)
         print(f'Done!')

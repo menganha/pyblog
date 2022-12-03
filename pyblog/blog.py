@@ -98,11 +98,13 @@ class Blog:
         else:
             return False
 
-    def build_home_page(self, posts: list[Post]):
+    def build_home_page(self, all_posts: list[Post]):
         index_template = self.template_environment.get_template(self.INDEX_TEMPLATE)
-        index_html = index_template.render(latest_posts=posts)
-        target_path = self.website_path / 'index.html'
-        target_path.write_text(index_html)
+        pagination_base_path = self.website_path / 'index'
+        for actual_index, previous_page, next_page, target_path, page_posts in self._iter_posts_pagination(all_posts, pagination_base_path):
+            index_html = index_template.render(latest_posts=page_posts, index=actual_index,
+                                               previous_page=previous_page, next_page=next_page)
+            target_path.write_text(index_html)
 
     def build_tag_page(self, all_posts: list[Post]):
         all_tags = set([tag for post in all_posts for tag in post.tags])
@@ -110,14 +112,42 @@ class Blog:
 
         tag_template = self.template_environment.get_template(self.TAG_TEMPLATE)
         for tag, group in grouped_posts:
-            tag_html = tag_template.render(tag=tag, latest_posts=group[:self.HOME_MAX_POSTS])
-            target_path = self.website_tags_path / f'{tag}.html'
-            target_path.write_text(tag_html)
+            pagination_base_path = self.website_tags_path / f'{tag}'
+            for actual_index, previous_page, next_page, target_path, page_posts in self._iter_posts_pagination(all_posts,
+                                                                                                               pagination_base_path):
+                tag_html = tag_template.render(tag=tag, latest_posts=page_posts, index=actual_index,
+                                               previous_page=previous_page, next_page=next_page)
+                target_path.write_text(tag_html)
 
         all_tags_template = self.template_environment.get_template(self.ALL_TAGS_TEMPLATE)
         all_tags_html = all_tags_template.render(all_tags=all_tags)
         target_path = self.website_path / f'tags.html'
         target_path.write_text(all_tags_html)
+
+    def _iter_posts_pagination(self, all_posts: list[Post], pagination_base_path: Path):
+        for idx, pos in enumerate(range(0, len(all_posts), self.HOME_MAX_POSTS)):
+            page_posts = all_posts[pos:pos + self.HOME_MAX_POSTS]
+            actual_index = idx + 1
+            if idx == 0:
+                target_path = pagination_base_path.with_suffix('.html')
+                if len(all_posts) < self.HOME_MAX_POSTS:
+                    actual_index = None
+                    previous_page = None
+                    next_page = None
+                else:
+                    pagination_base_path.mkdir(exist_ok=True)
+                    previous_page = None
+                    next_page = pagination_base_path / f'page_{actual_index + 1}.html'
+            else:
+                previous_page = pagination_base_path / f'page_{actual_index - 1}.html'
+                target_path = pagination_base_path / f'page_{actual_index}.html'
+                # TODO: if the number of post is a multiple of HOME_MAX_POSTS then the below condition will be never satisfied
+                if len(page_posts) < self.HOME_MAX_POSTS:
+                    next_page = None
+                else:
+                    next_page = pagination_base_path / f'page_{actual_index + 1}.html'
+
+            yield actual_index, previous_page, next_page, target_path, page_posts
 
     def markdown_post_paths(self) -> Iterator[Path]:
         return self.posts_path.rglob('*md')
