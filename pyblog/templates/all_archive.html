@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block website_header %}Archive | {{ website_name }}{% endblock %}
+
+{% block content %}
+<h2>Archive</h2>
+<section class="post">
+    <div class="archive_container">
+        {% for year in grouped_posts %}
+        <h3>{{ year }}</h3>
+        <ul class="archive_dates">
+            {% for month, month_posts in grouped_posts[year] %}
+            <li><a href="/archive/{{ year }}/{{ month.lower() }}.html">{{ month }}.</a> {{ month_posts|length }} posts</li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,3 +1,4 @@
+import calendar
 import datetime as dt
 import json
 import shutil
@@ -17,10 +18,13 @@ class Blog:
     WEBSITE_DIR_NAME = 'public'
     POSTS_DIR_NAME = 'posts'
     TAGS_DIR_NAME = 'tags'
+    ARCHIVE_DIR_NAME = 'archive'
     DATA_DIR_NAME = 'data'
     POST_TEMPLATE = 'post.html'
     TAG_TEMPLATE = 'tag.html'
+    ARCHIVE_TEMPLATE = 'archive.html'
     ALL_TAGS_TEMPLATE = 'all_tags.html'
+    ALL_ARCHIVE_TEMPLATE = 'all_archive.html'
     INDEX_TEMPLATE = 'index.html'
     CSS_FILE_NAME = 'style.css'
     CONFIG_FILE_NAME = 'config.json'
@@ -33,6 +37,7 @@ class Blog:
         self.website_path = main_path / self.WEBSITE_DIR_NAME
         self.website_posts_path = self.website_path / self.POSTS_DIR_NAME
         self.website_tags_path = self.website_path / self.TAGS_DIR_NAME
+        self.website_archive_path = self.website_path / self.ARCHIVE_DIR_NAME
 
         self.posts_path = main_path / self.POSTS_DIR_NAME
         self.data_path = main_path / self.DATA_DIR_NAME
@@ -59,6 +64,7 @@ class Blog:
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
+        self.website_archive_path.mkdir()
         self.save_default_config()
         self.update_last_build_file()
 
@@ -113,7 +119,7 @@ class Blog:
         tag_template = self.template_environment.get_template(self.TAG_TEMPLATE)
         for tag, group in grouped_posts:
             pagination_base_path = self.website_tags_path / f'{tag}'
-            for actual_index, previous_page, next_page, target_path, page_posts in self._iter_posts_pagination(all_posts,
+            for actual_index, previous_page, next_page, target_path, page_posts in self._iter_posts_pagination(group,
                                                                                                                pagination_base_path):
                 tag_html = tag_template.render(tag=tag, latest_posts=page_posts, index=actual_index,
                                                previous_page=previous_page, next_page=next_page)
@@ -124,7 +130,38 @@ class Blog:
         target_path = self.website_path / f'tags.html'
         target_path.write_text(all_tags_html)
 
+    def build_archive_page(self, all_posts: list[Post]):
+        all_months = list(set([(post.date.year, post.date.month) for post in all_posts]))
+        all_months.sort(key=lambda x: x[0] * 10 - x[1], reverse=True)
+        grouped_posts = {year: [] for year, _ in all_months}
+        for year, month in all_months:
+            month_tuple = (calendar.month_name[month],
+                           [post for post in all_posts if (year == post.date.year and month == post.date.month)])
+            grouped_posts[year].append(month_tuple)
+
+        archive_template = self.template_environment.get_template(self.ARCHIVE_TEMPLATE)
+        for year in grouped_posts:
+            year_path = self.website_archive_path / f'{year}'
+            year_path.mkdir(exist_ok=True)
+            for month, group in grouped_posts[year]:
+                pagination_base_path = year_path / f'{month.lower()}'
+                for actual_index, previous_page, next_page, target_path, page_posts in self._iter_posts_pagination(group,
+                                                                                                                   pagination_base_path):
+                    tag_html = archive_template.render(month=month, year=year, latest_posts=page_posts, index=actual_index,
+                                                       previous_page=previous_page, next_page=next_page)
+                    target_path.write_text(tag_html)
+
+        all_archive_template = self.template_environment.get_template(self.ALL_ARCHIVE_TEMPLATE)
+        archive_html = all_archive_template.render(grouped_posts=grouped_posts)
+        target_path = self.website_path / f'archive.html'
+        target_path.write_text(archive_html)
+
     def _iter_posts_pagination(self, all_posts: list[Post], pagination_base_path: Path):
+        if len(all_posts) <= self.HOME_MAX_POSTS:  # special case when the list of post is small enough
+            actual_index = previous_page = next_page = None
+            target_path = pagination_base_path.with_suffix('.html')
+            yield actual_index, previous_page, next_page, target_path, all_posts
+            return
         for idx, pos in enumerate(range(0, len(all_posts), self.HOME_MAX_POSTS)):
             page_posts = all_posts[pos:pos + self.HOME_MAX_POSTS]
             actual_index = idx + 1
@@ -139,7 +176,10 @@ class Blog:
                     previous_page = None
                     next_page = pagination_base_path / f'page_{actual_index + 1}.html'
             else:
-                previous_page = pagination_base_path / f'page_{actual_index - 1}.html'
+                if idx == 1:
+                    previous_page = pagination_base_path.with_suffix('.html')
+                else:
+                    previous_page = pagination_base_path / f'page_{actual_index - 1}.html'
                 target_path = pagination_base_path / f'page_{actual_index}.html'
                 # TODO: if the number of post is a multiple of HOME_MAX_POSTS then the below condition will be never satisfied
                 if len(page_posts) < self.HOME_MAX_POSTS:

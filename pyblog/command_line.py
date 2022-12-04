@@ -39,11 +39,11 @@ def build(blog: Blog, force: bool):
     all_public_posts = []
     needs_rebuild = False
 
-    if blog.is_style_sheet_updated():
+    if blog.is_style_sheet_updated() or force:
         print(f'The style.css file has been modified. Copying new version to site...')
         shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
 
-    if blog.is_config_file_updated():
+    if blog.is_config_file_updated() or force:
         print(f'The config.json file has been modified. Rebuilding whole site...')
         needs_rebuild = True
 
@@ -74,6 +74,8 @@ def build(blog: Blog, force: bool):
         blog.build_home_page(all_public_posts)
         print(f'Building tag pages...')
         blog.build_tag_page(all_public_posts)
+        print(f'Building archive pages...')
+        blog.build_archive_page(all_public_posts)
         print(f'Done!')
 
 
