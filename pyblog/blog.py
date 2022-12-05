@@ -195,13 +195,15 @@ class Blog:
     def orphan_target_paths(self) -> Iterator[Path]:
         """ Returns the html paths of the current build that do not have a corresponding markdown path """
         for target_path in self.website_posts_path.rglob('*.html'):
-            if not list(self.posts_path.rglob(f'{target_path.stem}.md')):
+            expected_post_path = target_path.relative_to(self.website_path).with_suffix('.md')
+            if not expected_post_path.exists():
                 yield target_path
 
     def build_post(self, post: Post):
         post_template = self.template_environment.get_template(self.POST_TEMPLATE)
         html_content = post.get_content_in_html()
         html_page = post_template.render(post=post, content=html_content)
+        post.target_path.parent.mkdir(exist_ok=True)
         post.target_path.write_text(html_page)
 
     def get_post_target_html_path(self, post_path: Path) -> Path:
