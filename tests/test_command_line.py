@@ -83,7 +83,9 @@ def test_build_with_posts(created_blog, mocker, post, draft_post, post_not_dirty
 
 def test_serve(mocker, tmp_path):
     mocked_httpd_serve_forever = mocker.patch('socketserver.TCPServer.serve_forever')
+    mocked_chdir = mocker.patch('os.chdir')
 
     cli.serve(tmp_path)
 
+    mocked_chdir.assert_called_with(tmp_path)
     mocked_httpd_serve_forever.assert_called_once()

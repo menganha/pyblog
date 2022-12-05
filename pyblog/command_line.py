@@ -1,5 +1,6 @@
 import argparse
 import http.server
+import os
 import shutil
 import socketserver
 import sys
@@ -29,7 +30,7 @@ def parse_cli_arguments():
 
 
 def init(path: Path):
-    pyblog = Blog(path.expanduser())
+    pyblog = Blog(path.resolve().expanduser())
     pyblog.create()
     print(f'New Pyblog successfully created on {path.absolute()}!')
 
@@ -45,7 +46,7 @@ def build(blog: Blog, force: bool):
 
     if blog.is_config_file_updated() or force:
         print(f'The config.json file has been modified. Rebuilding whole site...')
-        needs_rebuild = True
+        force = True
 
     if blog.is_config_file_updated() or blog.is_style_sheet_updated():
         blog.update_last_build_file()
@@ -54,7 +55,7 @@ def build(blog: Blog, force: bool):
         target_path = blog.get_post_target_html_path(path)
         post = Post(path, target_path)
         all_public_posts.append(post)
-        if post.is_public() and (post.is_dirty(target_path) or force or needs_rebuild):
+        if post.is_public() and (post.is_dirty(target_path) or force):
             print(f'Building post {post.source_path}...')
             blog.build_post(post)
             if not needs_rebuild:
@@ -80,14 +81,8 @@ def build(blog: Blog, force: bool):
 
 
 def serve(filepath_to_serve: Path):
-    class SimpleHTTPRequestHandlerDirectory(http.server.SimpleHTTPRequestHandler):
-        """ Initializes the simple request handler with the blog directory """
-
-        def __init__(self, *args, **kwargs):
-            kwargs['directory'] = filepath_to_serve
-            super().__init__(*args, **kwargs)
-
-    with socketserver.TCPServer((DEFAULT_TEST_HOST, DEFAULT_TEST_PORT), SimpleHTTPRequestHandlerDirectory) as httpd:
+    os.chdir(filepath_to_serve)
+    with socketserver.TCPServer((DEFAULT_TEST_HOST, DEFAULT_TEST_PORT), http.server.SimpleHTTPRequestHandler) as httpd:
         try:
             print(f'Test server running on: http://{DEFAULT_TEST_HOST}:{DEFAULT_TEST_PORT}')
             httpd.serve_forever()
