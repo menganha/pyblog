@@ -5,20 +5,10 @@ Pyblog allows you to create a simple and customizable blog site with minimal eff
 Write your posts in markdown, build the blog site, and deploy it anywhere you like.
 
 <!-- TOC -->
-
-* [Features](#features)
 * [Installation](#installation)
 * [Getting started](#getting-started)
-
+* [Features](#features)
 <!-- TOC -->
-
-## Features
-
-* Simply and minimalistic user interface
-* Sane defaults for the website. Have a nice blog with all the expected features: archive, categories, and a home page with the latest posts
-* Markdown-format post system. No need of complex databases, the only thing needed to build your website are the markdown files representing
-  your posts. Ideal for version control!
-* Optimized build system. Only builds what you have newly added, not the entire site again and again
 
 ## Installation
 
@@ -61,3 +51,14 @@ how the site will look you can use the command
     pyblog test
 
 which will create a local server with your website on `http://localhost:9090` by default.
+
+## Features
+
+* _Simply and minimalistic user interface_
+* _Sane defaults for the website._ Have a nice blog with all the expected features: archive, categories, and a home page with the latest
+  posts
+* _Markdown-format post system._ No need of complex databases, the only thing needed to build your website are the markdown files
+  representing
+  your posts. Ideal for version control!
+* _Optimized build system._ Only builds what you have newly added, not the entire site again and again
+
