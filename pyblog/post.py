@@ -59,7 +59,12 @@ class Post:
                 line = raw_line.strip()
                 if line:
                     if match := self.METADATA_REGEXP.match(line):
-                        metadata.update({match.group(1).lower(): match.group(2).lower()})
+                        key, value = match.group(1).lower(), match.group(2).lower()
+                        if key in Post.INVALID_LABELS:
+                            print(f'Invalid metadata label entry: "{key}". Ignoring...')
+                            continue
+                        else:
+                            metadata.update({key: value})
                     elif match := self.TITLE_REGEXP.match(line):
                         metadata.update({'title': match.group(1)})
                         break
@@ -91,10 +96,6 @@ class Post:
 
         # Convert into the correct type the value of the keys
         for key, value in metadata.items():
-            if key in Post.INVALID_LABELS:
-                print(f'Invalid metadata label entry: "{key}". Ignoring...')
-                continue
-
             if isinstance(value, str) and value.startswith('[') and value.endswith(']'):
                 actual_value = [list_element.strip() for list_element in metadata[key].strip(' []').split(',')]
             else:
