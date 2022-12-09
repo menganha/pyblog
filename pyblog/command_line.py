@@ -30,9 +30,9 @@ def parse_cli_arguments():
 
 
 def init(path: Path):
-    pyblog = Blog(path.resolve().expanduser())
+    pyblog = Blog(path)
     pyblog.create()
-    print(f'New Pyblog successfully created on {path.absolute()}!')
+    print(f'New Pyblog successfully created on {path.resolve()}!')
 
 
 def build(blog: Blog, force: bool):
@@ -47,9 +47,6 @@ def build(blog: Blog, force: bool):
     if blog.is_config_file_updated() or force:
         print(f'The config.json file has been modified. Rebuilding whole site...')
         force = True
-
-    if blog.is_config_file_updated() or blog.is_style_sheet_updated():
-        blog.update_last_build_file()
 
     for path in blog.markdown_post_paths():
         target_path = blog.get_post_target_html_path(path)
@@ -66,11 +63,8 @@ def build(blog: Blog, force: bool):
         print(f'Deleting orphan page: {target_path}')
         target_path.unlink()
 
-    if not needs_rebuild:
-        print('No new posts found!')
-    else:
+    if force or needs_rebuild:
         all_public_posts.sort(key=lambda x: x.date, reverse=True)
-        # latest_posts = all_public_posts[:blog.HOME_MAX_POSTS]  # Maybe handle this within the blog instance
         print(f'Building index...')
         blog.build_home_page(all_public_posts)
         print(f'Building tag pages...')
@@ -78,6 +72,11 @@ def build(blog: Blog, force: bool):
         print(f'Building archive pages...')
         blog.build_archive_page(all_public_posts)
         print(f'Done!')
+    else:
+        print('No new posts found!')
+
+    if blog.is_config_file_updated() or blog.is_style_sheet_updated() or needs_rebuild:
+        blog.update_last_build_file()
 
 
 def serve(filepath_to_serve: Path):
@@ -101,7 +100,7 @@ def execute():
     else:
         pyblog = Blog(Path('.'))
         if not pyblog.is_pyblog():
-            print('Error: The current path does not contain a pyblog')
+            print(f'Error: The current path "{pyblog.main_path}" does not contain a pyblog')
             return 1
 
         if args.command == 'build':

@@ -41,6 +41,6 @@ def test_orphan_target_paths(created_blog):
     (created_blog.website_posts_path / 'a_test_post_2.html').touch()
     (created_blog.website_posts_path / 'a_test_post_3.html').touch()
 
-    orphan_paths = list(created_blog.orphan_target_paths())
+    orphan_paths = set(created_blog.orphan_target_paths())
 
-    assert orphan_paths == [created_blog.website_posts_path / 'a_test_post_3.html']
+    assert orphan_paths == {created_blog.website_posts_path / 'a_test_post_1.html', created_blog.website_posts_path / 'a_test_post_3.html'}

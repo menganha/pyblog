@@ -32,7 +32,7 @@ class Blog:
     HOME_MAX_POSTS = 10
 
     def __init__(self, main_path: Path):
-        self.main_path = main_path
+        self.main_path = main_path.resolve().expanduser()
 
         self.website_path = main_path / self.WEBSITE_DIR_NAME
         self.website_posts_path = self.website_path / self.POSTS_DIR_NAME
@@ -195,7 +195,7 @@ class Blog:
     def orphan_target_paths(self) -> Iterator[Path]:
         """ Returns the html paths of the current build that do not have a corresponding markdown path """
         for target_path in self.website_posts_path.rglob('*.html'):
-            expected_post_path = target_path.relative_to(self.website_path).with_suffix('.md')
+            expected_post_path = self.main_path / target_path.relative_to(self.website_path).with_suffix('.md')
             if not expected_post_path.exists():
                 yield target_path
 

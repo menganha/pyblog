@@ -1,4 +1,3 @@
-import pathlib
 from pathlib import Path
 
 from pyblog import command_line as cli
@@ -11,12 +10,6 @@ def test_init(mocker):
     test_path = Path('/one/two/path')
     cli.init(test_path)
     mocked_blog.assert_called_with(test_path)
-    mocked_blog_create.assert_called()
-
-    test_path = Path('~/one/two/path')
-    cli.init(test_path)
-    actual_path = pathlib.Path.home() / 'one/two/path'
-    mocked_blog.assert_called_with(actual_path)
     mocked_blog_create.assert_called()
 
 
@@ -72,7 +65,7 @@ def test_build_with_posts(created_blog, mocker, post, draft_post, post_not_dirty
     cli.build(created_blog, force=False)
 
     mock_copy_tree.assert_not_called()
-    mock_update_last_build_file.assert_not_called()
+    mock_update_last_build_file.assert_called_once()
     mock_build_home_page.assert_called_once()
     mock_build_tag_page.assert_called_once()
 
