@@ -2,19 +2,15 @@
 
 body    { font: 17px/25px Verdana, sans-serif;
           font-weight: normal;
-          margin: 40px auto;
+          margin: auto;
           max-width: 880px;
           padding: 0 auto;  
           color: black;}
-a       { color: black; 
-          font-weight: normal; }
+a       { color: black; }
 a:hover { color: black; }
 
 /* navigation */
-
-header { padding: 0px; margin-bottom: 40px; overflow: hidden}
-header div#title { float: left; }
-header nav { float: right; }
+header { padding: 20px 20px; margin-bottom: 40px; display: flex; justify-content: space-between;}
 header nav ul { margin:0; padding:0;} /* We have to reset hard these properties as they have non-zero defaults*/
 header nav ul li { display: inline; padding: 0 5px 0 5px }
 
@@ -26,13 +22,18 @@ h1, h2, h3, h4, h5, h6      { font-family: Georgia, serif;
 /* main */
 main { margin: 0; padding: 0 40px 20px 40px}
 
-/* post */
-section div.post_container {overflow: hidden}
-section div.post_container span { padding: 5px 0; float: left}
-section div.post_container h2 { font-size: 20px; float: right}
+/* posts */
+article.post {max-width: 600px; margin: auto; }
+article.post p { text-align: justify; }
+section.post_lists { margin: auto; }
+section div.post_header_container { display: flex; justify-content: flex-start; align-items: baseline;}
+section div.post_header_date {padding-right: 10px; flex-basis: 30% ; text-align: right; font-style: italic;}
+section div.post_header_summary h3 { font-weight: normal; }
 
+/* pagination */
+section.pagination { text-align: center}
 
 /* footer */
 footer { margin: 0; 
-         padding: 0 0px;
+         padding: 0 15px;
          text-align: right;}

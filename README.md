@@ -64,6 +64,6 @@ which will create a local server with your website on `http://localhost:9090` by
 * _Sane defaults for the website._ Have a nice blog with all the expected features: archive, categories, and a home page with the latest
   posts
 * _Markdown-format post system._ No need of complex databases, the only thing needed to build your website are the markdown files
-  representing your posts. Ideal for version control!
+  containing your posts. Ideal for version control!
 * _Optimized build system._ Only builds what you have recently added/changed.
 
