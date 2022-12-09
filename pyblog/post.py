@@ -13,12 +13,12 @@ import markdown
 
 
 class Post:
-    MANDATORY_LABELS = ['draft', 'date']
+    MANDATORY_LABELS = ['draft']
     DEFAULT_TAG = 'blog'
     INVALID_LABELS = ['_metadata', 'target_path', 'source_path', 'title']
 
-    TITLE_REGEXP = re.compile(r'^\s?#\s(.*)', flags=re.MULTILINE)
-    METADATA_REGEXP = re.compile(r'^\s?(\w+):\s(.+)', flags=re.MULTILINE)
+    TITLE_REGEXP = re.compile(r'^\s*#\s*(.*?)\s*$', flags=re.MULTILINE)
+    METADATA_REGEXP = re.compile(r'^\s*(\w+)\s*:\s*(.+?)\s*$', flags=re.MULTILINE)
 
     def __init__(self, source_path: Path, target_path: Path):
         self.source_path = source_path
@@ -52,56 +52,58 @@ class Post:
         """
         Gets all the labels like "label: value" at the beginning of the post and also retrieve the title following
         this label
-        TODO: Make it so that it doesn't read the whole file, iterating over each line individually
         """
-        with self.source_path.open() as file:
-            raw_text = file.read().strip()
-
-        metadata_matches = []
-        prev_match_end_pos = 0
-        for idx, match in enumerate(Post.METADATA_REGEXP.finditer(raw_text)):
-            if idx == 0:
-                metadata_matches.append(match)
-                prev_match_end_pos = match.end()
-                continue
-            text_in_between = raw_text[prev_match_end_pos:match.start()].strip()
-            if not text_in_between:
-                metadata_matches.append(match)
-                prev_match_end_pos = match.end()
-            else:
-                break
-
         metadata = {}
-        for match in metadata_matches:
-            key = match.group(1).lower()
-            value = match.group(2).lower()
-            if key in Post.INVALID_LABELS:
-                print(f'Invalid metadata label entry: {key}: {value}')
-                continue
-            if key == 'date':
-                value = dt.date.fromisoformat(value)
-            elif key == 'tags' and '[' not in value:
-                value = [value]
-            elif '[' in value:
-                value = [list_element.strip() for list_element in value.strip(' []').split(',')]
-            metadata.update({key: value})
+        with self.source_path.open() as file:
+            for raw_line in file:
+                line = raw_line.strip()
+                if line:
+                    if match := self.METADATA_REGEXP.match(line):
+                        metadata.update({match.group(1).lower(): match.group(2).lower()})
+                    elif match := self.TITLE_REGEXP.match(line):
+                        metadata.update({'title': match.group(1)})
+                        break
+                    else:
+                        break
 
-        # add default tag if nothing is found
+        # Add default tag if nothing is found
         if 'tags' not in metadata:
             metadata.update({'tags': [Post.DEFAULT_TAG]})
 
-        # Parse title which is also part of the metadata
-        last_metadata_end_pos = metadata_matches[-1].end() if metadata_matches else 0
-        match_title = Post.TITLE_REGEXP.search(raw_text)
-
-        if not match_title or raw_text[last_metadata_end_pos:match_title.start()].strip():
-            raise ValueError('No title found or text or the title does not follow directly the metadata labels')
+        # Add default date if not found and prepend it to the file
+        if 'date' not in metadata:
+            today = dt.date.today()
+            metadata.update({'date': today})
+            with self.source_path.open() as file:
+                content = file.read()
+            with self.source_path.open(mode='w') as file:
+                file.write(f'date: {today.isoformat()}\n')
+                file.write(content)
         else:
-            metadata.update({'title': match_title.group(1)})
-        if not Post.METADATA_REGEXP.match(raw_text):
-            raise ValueError('No metadata label found at the beginning of the text')
-        if not set(Post.MANDATORY_LABELS).issubset(set(metadata)):
-            raise ValueError(f'Not all mandatory labels {Post.MANDATORY_LABELS} found not found in metadata')
+            metadata.update({'date': dt.date.fromisoformat(metadata['date'])})
+
+        # Check for errors
+        missing_mandatory_labels = set(Post.MANDATORY_LABELS).difference(set(metadata))
+        if missing_mandatory_labels:
+            raise ValueError(f'The following mandatory label(s) is missing: {missing_mandatory_labels}')
+        elif 'title' not in metadata:
+            raise ValueError('No title found after the data labels')
+
+        # Convert into the correct type the value of the keys
+        for key, value in metadata.items():
+            if key in Post.INVALID_LABELS:
+                print(f'Invalid metadata label entry: "{key}". Ignoring...')
+                continue
+
+            if isinstance(value, str) and value.startswith('[') and value.endswith(']'):
+                actual_value = [list_element.strip() for list_element in metadata[key].strip(' []').split(',')]
+            else:
+                actual_value = value
+
+            if key == 'tags' and isinstance(actual_value, str):
+                actual_value = [actual_value]
+
+            metadata.update({key: actual_value})
 
         return metadata
 
