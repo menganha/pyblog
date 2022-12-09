@@ -31,7 +31,13 @@ now navigate to the newly created folder
 
     cd Discourses
 
-To publish your first though, create a new file on `posts/my_first_thought.md`
+To publish your first though, create a new file on, e.g.,  `posts/my_first_thought.md`. The only requirements for a post is that
+
+1. It is somewhere inside the `posts` folder
+2. Has set the label `draft` to "yes" or "no" at the file header.
+3. It has a level 1 Markdown heading with the title of the post right after the label(s).
+
+Apart from these minimal requirements, the post can have any valid Markdown syntax.
 
     draft: no
     
@@ -45,8 +51,8 @@ Finally, build the website using the command
 
     pyblog build
 
-All the contents of the website are under the folder `public`. You can upload these files to any server of your liking. If you wish to check
-how the site will look you can use the command
+All the contents of the website are built under the folder `public`. You can upload these files to any hosting service of your liking. If
+you wish to check how the site will look you can use the command
 
     pyblog test
 
@@ -58,7 +64,6 @@ which will create a local server with your website on `http://localhost:9090` by
 * _Sane defaults for the website._ Have a nice blog with all the expected features: archive, categories, and a home page with the latest
   posts
 * _Markdown-format post system._ No need of complex databases, the only thing needed to build your website are the markdown files
-  representing
-  your posts. Ideal for version control!
-* _Optimized build system._ Only builds what you have newly added, not the entire site again and again
+  representing your posts. Ideal for version control!
+* _Optimized build system._ Only builds what you have recently added/changed.
 
