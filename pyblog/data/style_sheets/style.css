@@ -20,18 +20,22 @@ h1, h2, h3, h4, h5, h6      { font-family: Georgia, serif;
                               color: black;}
 
 /* main */
-main { margin: 0; padding: 0 40px 20px 40px}
+main { margin: 0; padding: 0 75px 20px 75px}
 
 /* posts */
-article.post {max-width: 600px; margin: auto; }
-article.post p { text-align: justify; }
+article.post {margin: auto;}
+article.post p { text-align: justify;}
 section.post_lists { margin: auto; }
 section div.post_header_container { display: flex; justify-content: flex-start; align-items: baseline;}
 section div.post_header_date {padding-right: 10px; flex-basis: 30% ; text-align: right; font-style: italic;}
 section div.post_header_summary h3 { font-weight: normal; }
+section.tags {word-spacing: 20px;}
 
 /* pagination */
 section.pagination { text-align: center}
+
+/* code */
+code {font-family: monospace; font-size: 12px;}
 
 /* footer */
 footer { margin: 0; 

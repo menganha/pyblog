@@ -125,8 +125,11 @@ class Blog:
                                                previous_page=previous_page, next_page=next_page)
                 target_path.write_text(tag_html)
 
+        # Get font size increase depending on the amount of posts
+        all_tags_with_sizes = [(tag, 100 + 0.5 * (len(posts))) for tag, posts in grouped_posts]
+
         all_tags_template = self.template_environment.get_template(self.ALL_TAGS_TEMPLATE)
-        all_tags_html = all_tags_template.render(all_tags=all_tags)
+        all_tags_html = all_tags_template.render(all_tags=all_tags_with_sizes)
         target_path = self.website_path / f'tags.html'
         target_path.write_text(all_tags_html)
 
