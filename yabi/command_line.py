@@ -19,7 +19,7 @@ def parse_cli_arguments():
     subparsers = parser.add_subparsers(title='subcommands', dest='command', description='valid subcommands', required=True)
 
     parser_init = subparsers.add_parser('init', help='Creates a new yabi blog website')
-    parser_init.add_argument('path', help='Initializes all the relevant files for the website on the input path', default='.')
+    parser_init.add_argument('path', help='Initializes all the relevant files for the website on the input path')
 
     parser_build = subparsers.add_parser('build', help='Builds the website')
     parser_build.add_argument('--force', help='Force a clean rebuild of the entire website', action='store_true')
@@ -43,6 +43,7 @@ def build(blog: Blog, force: bool):
     if blog.is_style_sheet_updated() or force:
         print(f'The style.css file has been modified. Copying new version to site...')
         shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
+        # TODO: release doesn't seem to be copying this when it is initialized!
 
     if blog.is_config_file_updated() or force:
         print(f'The config.json file has been modified. Rebuilding whole site...')

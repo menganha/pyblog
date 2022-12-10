@@ -97,6 +97,20 @@ def invalid_text_path_4(tmp_path) -> Path:
 
 
 @pytest.fixture()
+def invalid_text_path_5(tmp_path) -> Path:
+    text = cleandoc("""
+    draft: no
+
+    ##  A second level header title
+    
+    no no no
+    """)
+    post_path = tmp_path / 'post.md'
+    post_path.write_text(text)
+    return post_path
+
+
+@pytest.fixture()
 def dummy_target_path(tmp_path) -> Path:
     return tmp_path / 'dummy_target.html'
 
@@ -151,10 +165,14 @@ def test_invalid_initializer_3(invalid_text_path_3, dummy_target_path):
         Post(invalid_text_path_3, dummy_target_path)
 
 
-def test_invalid_initializer_4(invalid_text_path_3, dummy_target_path):
+def test_invalid_initializer_4(invalid_text_path_4, dummy_target_path):
     with pytest.raises(ValueError):
-        Post(invalid_text_path_3, dummy_target_path)
+        Post(invalid_text_path_4, dummy_target_path)
 
+
+def test_invalid_initializer_5(invalid_text_path_5, dummy_target_path):
+    with pytest.raises(ValueError):
+        Post(invalid_text_path_5, dummy_target_path)
 
 def test_equality(valid_text_path, dummy_target_path, tmp_path):
     post = Post(valid_text_path, dummy_target_path)

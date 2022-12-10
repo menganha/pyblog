@@ -17,7 +17,7 @@ class Post:
     DEFAULT_TAG = 'blog'
     INVALID_LABELS = ['_metadata', 'target_path', 'source_path', 'title']
 
-    TITLE_REGEXP = re.compile(r'^\s*#\s*(.*?)\s*$', flags=re.MULTILINE)
+    TITLE_REGEXP = re.compile(r'^\s*#(?!#)\s*(.*?)\s*$', flags=re.MULTILINE)
     METADATA_REGEXP = re.compile(r'^\s*(\w+)\s*:\s*(.+?)\s*$', flags=re.MULTILINE)
 
     def __init__(self, source_path: Path, target_path: Path):
