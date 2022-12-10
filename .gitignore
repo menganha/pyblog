@@ -1,4 +1,4 @@
 *.sh
 .idea
-pyblog.egg-info
+yabi.egg-info
 dist

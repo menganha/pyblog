@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from pyblog.blog import Blog
-from pyblog.post import Post
+from yabi.blog import Blog
+from yabi.post import Post
 
 
 @pytest.fixture()

@@ -6,19 +6,19 @@ import socketserver
 import sys
 from pathlib import Path
 
-from pyblog.blog import Blog
-from pyblog.post import Post
+from yabi.blog import Blog
+from yabi.post import Post
 
 DEFAULT_TEST_PORT = 9090
 DEFAULT_TEST_HOST = 'localhost'
 
 
 def parse_cli_arguments():
-    parser = argparse.ArgumentParser(prog='pyblog', description='A static blog site generator')
+    parser = argparse.ArgumentParser(prog='yabi', description='A static blog site generator')
 
     subparsers = parser.add_subparsers(title='subcommands', dest='command', description='valid subcommands', required=True)
 
-    parser_init = subparsers.add_parser('init', help='Creates a new pyblog website')
+    parser_init = subparsers.add_parser('init', help='Creates a new yabi blog website')
     parser_init.add_argument('path', help='Initializes all the relevant files for the website on the input path')
 
     parser_build = subparsers.add_parser('build', help='Builds the website')
@@ -30,9 +30,9 @@ def parse_cli_arguments():
 
 
 def init(path: Path):
-    pyblog = Blog(path)
-    pyblog.create()
-    print(f'New Pyblog successfully created on {path.resolve()}!')
+    blog = Blog(path)
+    blog.create()
+    print(f'New yabi blog successfully created on {path.resolve()}!')
 
 
 def build(blog: Blog, force: bool):
@@ -98,16 +98,16 @@ def execute():
         init(Path(args.path))
 
     else:
-        pyblog = Blog(Path('.'))
-        if not pyblog.is_pyblog():
-            print(f'Error: The current path "{pyblog.main_path}" does not contain a pyblog')
+        blog = Blog(Path('.'))
+        if not blog.is_blog():
+            print(f'Error: The current path "{blog.main_path}" does not contain a yabi blog')
             return 1
 
         if args.command == 'build':
-            build(pyblog, args.force)
+            build(blog, args.force)
 
         elif args.command == 'test':
-            serve(pyblog.website_path)
+            serve(blog.website_path)
 
 
 if __name__ == '__main__':

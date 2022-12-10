@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from pyblog import command_line as cli
+from yabi import command_line as cli
 
 
 def test_init(mocker):
-    mocked_blog = mocker.patch('pyblog.command_line.Blog')
+    mocked_blog = mocker.patch('yabi.command_line.Blog')
     mocked_blog_create = mocked_blog.return_value.create
 
     test_path = Path('/one/two/path')

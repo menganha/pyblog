@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pyblog.post import Post
+from yabi.post import Post
 
 
 @pytest.fixture()

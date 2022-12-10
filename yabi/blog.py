@@ -9,7 +9,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader
 
-from pyblog.post import Post
+from yabi.post import Post
 
 
 class Blog:
@@ -28,7 +28,7 @@ class Blog:
     INDEX_TEMPLATE = 'index.html'
     CSS_FILE_NAME = 'style.css'
     CONFIG_FILE_NAME = 'config.json'
-    LAST_BUILD_FILE_NAME = '.pyblog_last_build'
+    LAST_BUILD_FILE_NAME = '.yabi_last_build'
     HOME_MAX_POSTS = 10
 
     def __init__(self, main_path: Path):
@@ -46,17 +46,17 @@ class Blog:
         self.default_css_file_path = self.style_sheets_path / self.CSS_FILE_NAME
         self.last_build_file_path = self.main_path / self.LAST_BUILD_FILE_NAME
 
-        self.template_environment = Environment(loader=PackageLoader('pyblog'), trim_blocks=True, lstrip_blocks=True)
+        self.template_environment = Environment(loader=PackageLoader('yabi'), trim_blocks=True, lstrip_blocks=True)
         self.template_environment.globals.update({'current_year': f'{dt.date.today().year}',
                                                   'website_path': self.website_path})
         self.config_path = main_path / self.CONFIG_FILE_NAME
 
     def create(self):
-        if self.is_pyblog():
-            print(f'Error! Input path {self.main_path.resolve()} seems to contain another pyblog')
+        if self.is_blog():
+            print(f'Error! Input path {self.main_path.resolve()} seems to contain another yabi blog')
             sys.exit(1)
-        elif not self.is_pyblog() and self.main_path.exists():
-            print(f'Error! Input path {self.main_path.resolve()} already exists. Please choose a another path to create a pyblog')
+        elif not self.is_blog() and self.main_path.exists():
+            print(f'Error! Input path {self.main_path.resolve()} already exists. Please choose a another path to create a yabi blog')
             sys.exit(1)
 
         self.main_path.mkdir(parents=True)
@@ -86,7 +86,7 @@ class Blog:
         return self.config_path.stat().st_mtime > self.last_build_file_path.stat().st_mtime
 
     def save_default_config(self):
-        with resources.as_file(resources.files('pyblog') / self.DATA_DIR_NAME) as data_directory:
+        with resources.as_file(resources.files('yabi') / self.DATA_DIR_NAME) as data_directory:
             shutil.copytree(data_directory, self.data_path, dirs_exist_ok=True)
 
         # TODO: think of adding a enum or something else for better control of all config variables
@@ -97,8 +97,8 @@ class Blog:
         json_encoded = json.dumps(config)
         self.config_path.write_text(json_encoded)
 
-    def is_pyblog(self) -> bool:
-        """ Checks whether the current directory is a pyblog, i.e., it has the relevant paths"""
+    def is_blog(self) -> bool:
+        """ Checks whether the current directory is a yabi blog, i.e., it has the relevant paths"""
         if self.website_path.exists() and self.posts_path.exists() and self.data_path.exists() and self.config_path.exists():
             return True
         else:

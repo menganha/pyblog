@@ -13,9 +13,9 @@ def test_create_blog(blog, blog_path):
 
 
 def test_is_blog(blog):
-    assert not blog.is_pyblog()
+    assert not blog.is_blog()
     blog.create()
-    assert blog.is_pyblog()
+    assert blog.is_blog()
 
 
 def test_build_post(created_blog, post):
