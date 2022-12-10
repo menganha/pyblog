@@ -60,13 +60,13 @@ class Blog:
             sys.exit(1)
 
         self.main_path.mkdir(parents=True)
+        self.update_last_build_file()
         self.website_path.mkdir()
         self.posts_path.mkdir()
         self.website_posts_path.mkdir()
         self.website_tags_path.mkdir()
         self.website_archive_path.mkdir()
         self.save_default_config()
-        self.update_last_build_file()
 
     def load_config(self):
         """ Loads the config file and applies the globals to the environment """
@@ -88,6 +88,9 @@ class Blog:
     def save_default_config(self):
         with resources.as_file(resources.files('yabi') / self.DATA_DIR_NAME) as data_directory:
             shutil.copytree(data_directory, self.data_path, dirs_exist_ok=True)
+
+        for file in self.data_path.rglob('*'):  # refresh modification of all files
+            file.touch()
 
         # TODO: think of adding a enum or something else for better control of all config variables
         config = {'website_name': self.main_path.resolve().name,

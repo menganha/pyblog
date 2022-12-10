@@ -43,7 +43,6 @@ def build(blog: Blog, force: bool):
     if blog.is_style_sheet_updated() or force:
         print(f'The style.css file has been modified. Copying new version to site...')
         shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
-        # TODO: release doesn't seem to be copying this when it is initialized!
 
     if blog.is_config_file_updated() or force:
         print(f'The config.json file has been modified. Rebuilding whole site...')

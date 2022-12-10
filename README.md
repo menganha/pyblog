@@ -5,11 +5,9 @@ yabi allows you to create a simple and customizable blog site with minimal effor
 Write your posts in markdown, build the blog site, and deploy it anywhere you like.
 
 <!-- TOC -->
-
-* [YABI: Yet Another Blogging (tool) Implementation](#yabi--yet-another-blogging--tool--implementation)
-  * [Installation](#installation)
-  * [Getting started](#getting-started)
-  * [Features](#features)
+* [Installation](#installation)
+* [Getting started](#getting-started)
+* [Features](#features)
 <!-- TOC -->
 
 ## Installation

@@ -24,11 +24,11 @@ def test_build_nothing_to_do(created_blog, mocker):
     cli.build(created_blog, force=False)
 
     mock_load_config.assert_called_once()
-    mock_copy_tree.assert_not_called()
-    mock_update_last_build_file.assert_not_called()
+    mock_copy_tree.assert_called()
+    mock_update_last_build_file.assert_called()
     mock_build_post.assert_not_called()
-    mock_build_home_page.assert_not_called()
-    mock_build_tag_page.assert_not_called()
+    mock_build_home_page.assert_called_once()
+    mock_build_tag_page.assert_called_once()
 
 
 def test_build_change_config_files(created_blog, mocker):
