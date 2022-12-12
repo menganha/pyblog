@@ -5,7 +5,7 @@
 <h2>List of tags</h2>
 <section class="tags">
     {% for tag, perc_size in all_tags %}
-    <a href="/tags/{{ tag }}.html" style="font-size: {{ perc_size }}% ">{{ tag }}</a>
+    <a href="tags/{{ tag }}.html" style="font-size: {{ perc_size }}% ">{{ tag }}</a>
     {% endfor %}
 </section>
 {% endblock %}

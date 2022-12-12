@@ -9,7 +9,7 @@
     <div class="post_header_container">
         <div class="post_header_date"> {{ post.date.strftime('%b %-d, %Y') }}</div>
         <div class="post_header_summary">
-            <h3><a href="/{{ post.target_path.relative_to(website_path) }}">{{ post.title }}</a></h3>
+            <h3><a href="{{ post.target_path.relative_to(website_path) }}">{{ post.title }}</a></h3>
         </div>
     </div>
     {% endfor %}

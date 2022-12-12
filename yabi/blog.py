@@ -217,6 +217,8 @@ class Blog:
         config = {'website_name': self.main_path.resolve().name,
                   'website_author': '',
                   'website_description': '',
-                  'website_keywords': ''}
+                  'website_keywords': '',
+                  'website_root': '/'
+                  }
         json_encoded = json.dumps(config)
         self.config_path.write_text(json_encoded)

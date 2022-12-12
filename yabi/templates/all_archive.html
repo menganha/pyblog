@@ -9,7 +9,7 @@
         <h3>{{ year }}</h3>
         <ul class="archive_dates">
             {% for month, month_posts in grouped_posts[year] %}
-            <li><a href="/archive/{{ year }}/{{ month.lower() }}.html">{{ month }}.</a> {{ month_posts|length }} posts</li>
+            <li><a href="archive/{{ year }}/{{ month.lower() }}.html">{{ month }}.</a> {{ month_posts|length }} posts</li>
             {% endfor %}
         </ul>
         {% endfor %}

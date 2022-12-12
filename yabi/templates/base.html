@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8"/>
     {% block head %}
     <title>{% block website_header %}{% endblock %}</title>
     {% if website_description %}
@@ -14,8 +15,13 @@
     <meta name="keywords" content="{{ website_keywords }}"/>
     {% endif %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta charset="UTF-8"/>
-    <link rel="stylesheet" href="/style.css"/>
+    {% if website_root %}
+    <base href="{{ website_root }}">
+    {% else %}
+    <base href="/">
+    {% endif %}
+    <link rel="stylesheet" href="style.css"/>
+
     {% endblock %}
 </head>
 
@@ -23,13 +29,13 @@
 
 <header>
     <div id="title">
-        <a href="/">{{ website_name }}</a>
+        <a href="">{{ website_name }}</a>
     </div>
     <nav>
         <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/archive.html">Archive</a></li>
-            <li><a href="/tags.html">Tags</a></li>
+            <li><a href="">Home</a></li>
+            <li><a href="archive.html">Archive</a></li>
+            <li><a href="tags.html">Tags</a></li>
         </ul>
     </nav>
 </header>
