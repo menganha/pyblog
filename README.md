@@ -16,22 +16,26 @@ The easiest way to install from PyPI is to the `pip` command
 
     pip install --user yabi
 
-If you have cloned the source code you can install it with
+or if you have cloned the repo and want to install it directly from the source code
 
-    pip install --user .
+    pip install --user <path to the repo>
 
 ## Getting started
 
-Say, you want to create a new blog that describes your philosophical thoughts. You call it *Discourses*. To create this new blog type in a
+Say, you want to create a new blog that describes your philosophical thoughts. You want to call it *Discourses*. Start by typing on a
 terminal
 
     yabi init Discourses
 
-now navigate to the newly created folder
+This will create the following folder and files
 
-    cd Discourses
+    Discourses
+      ├── config.json
+      ├── data
+      └── posts
 
-To publish your first though, create a new file on, e.g.,  `posts/my_first_thought.md`. The only requirements for a post is that
+To publish your first though, create a new file on the `posts` folder, e.g.,  `posts/my_first_thought.md`. The only requirements for a post
+is that
 
 1. It is somewhere inside the `posts` folder
 2. Has set the label `draft` to "yes" or "no" at the file header.
@@ -47,16 +51,17 @@ Apart from these minimal requirements, the post can have any valid Markdown synt
 
     No, I'm not. I rather not to.
 
-Finally, build the website using the command
+Finally, navigate to the base directory `Discourses` and build the website using the command
 
     yabi build
 
-All the contents of the website are built under the folder `public`. You can upload these files to any hosting service of your liking. If
-you wish to check how the site will look you can use the command
+All the contents of the website are generated inside a folder named `public`. You can upload these files to any hosting service of your
+liking. If
+you wish to check how the site will look before you deploy it you can use the command
 
     yabi test
 
-which will create a local server with your website on `http://localhost:9090` by default.
+which will create a local server with your website that you can visit on the url `http://localhost:9090`
 
 ## Features
 
