@@ -90,9 +90,9 @@ class Post:
         # Check for errors
         missing_mandatory_labels = set(Post.MANDATORY_LABELS).difference(set(metadata))
         if missing_mandatory_labels:
-            raise ValueError(f'The following mandatory label(s) is missing: {missing_mandatory_labels}')
+            raise ValueError(f'The following mandatory label(s) is missing for the file {self.source_path}: {missing_mandatory_labels}')
         elif 'title' not in metadata:
-            raise ValueError('No title found after the data labels')
+            raise ValueError(f'No title found after the data labels for the file {self.source_path}')
 
         # Convert into the correct type the value of the keys
         for key, value in metadata.items():
