@@ -60,13 +60,10 @@ class Blog:
             sys.exit(1)
 
         self.main_path.mkdir(parents=True)
-        self.update_last_build_file()
-        self.website_path.mkdir()
         self.posts_path.mkdir()
-        self.website_posts_path.mkdir()
-        self.website_tags_path.mkdir()
-        self.website_archive_path.mkdir()
-        self.save_default_config()
+        self.data_path.mkdir()
+        self.update_last_build_file()
+        self._save_default_config()
 
     def load_config(self):
         """ Loads the config file and applies the globals to the environment """
@@ -75,34 +72,27 @@ class Blog:
         config = json.loads(json_encoded)
         self.template_environment.globals.update(config)
 
+    def create_base_website(self):
+        self.website_path.mkdir(exist_ok=True)
+        self.website_posts_path.mkdir(exist_ok=True)
+        self.website_tags_path.mkdir(exist_ok=True)
+        self.website_archive_path.mkdir(exist_ok=True)
+        shutil.copy(self.default_css_file_path, self.website_path)
+
     def update_last_build_file(self):
         """ Updates the modification time of the "last build" file which keeps track of the last build time"""
         self.last_build_file_path.touch(exist_ok=True)
 
-    def is_style_sheet_updated(self) -> bool:
-        return self.style_sheets_path.stat().st_mtime > self.last_build_file_path.stat().st_mtime
-
     def is_config_file_updated(self) -> bool:
-        return self.config_path.stat().st_mtime > self.last_build_file_path.stat().st_mtime
-
-    def save_default_config(self):
-        with resources.as_file(resources.files('yabi') / self.DATA_DIR_NAME) as data_directory:
-            shutil.copytree(data_directory, self.data_path, dirs_exist_ok=True)
-
-        for file in self.data_path.rglob('*'):  # refresh modification of all files
-            file.touch()
-
-        # TODO: think of adding a enum or something else for better control of all config variables
-        config = {'website_name': self.main_path.resolve().name,
-                  'website_author': '',
-                  'website_description': '',
-                  'website_keywords': ''}
-        json_encoded = json.dumps(config)
-        self.config_path.write_text(json_encoded)
+        if not self.last_build_file_path.exists():
+            self.update_last_build_file()
+            return True
+        else:
+            return self.config_path.stat().st_mtime > self.last_build_file_path.stat().st_mtime
 
     def is_blog(self) -> bool:
         """ Checks whether the current directory is a yabi blog, i.e., it has the relevant paths"""
-        if self.website_path.exists() and self.posts_path.exists() and self.data_path.exists() and self.config_path.exists():
+        if self.posts_path.exists() and self.data_path.exists() and self.config_path.exists():
             return True
         else:
             return False
@@ -162,6 +152,27 @@ class Blog:
         target_path = self.website_path / f'archive.html'
         target_path.write_text(archive_html)
 
+    def markdown_post_paths(self) -> Iterator[Path]:
+        return self.posts_path.rglob('*md')
+
+    def orphan_target_paths(self) -> Iterator[Path]:
+        """ Returns the html paths of the current build that do not have a corresponding markdown path """
+        for target_path in self.website_posts_path.rglob('*.html'):
+            expected_post_path = self.main_path / target_path.relative_to(self.website_path).with_suffix('.md')
+            if not expected_post_path.exists():
+                yield target_path
+
+    def build_post(self, post: Post):
+        post_template = self.template_environment.get_template(self.POST_TEMPLATE)
+        html_content = post.get_content_in_html()
+        html_page = post_template.render(post=post, content=html_content)
+        post.target_path.parent.mkdir(exist_ok=True)
+        post.target_path.write_text(html_page)
+
+    def get_post_target_html_path(self, post_path: Path) -> Path:
+        """ Target paths are named with the same name of the input markdown file name """
+        return self.website_posts_path / post_path.parent.relative_to(self.posts_path) / f'{post_path.stem}.html'
+
     def _iter_posts_pagination(self, all_posts: list[Post], pagination_base_path: Path):
         if len(all_posts) <= self.HOME_MAX_POSTS:  # special case when the list of post is small enough
             actual_index = previous_page = next_page = None
@@ -195,23 +206,17 @@ class Blog:
 
             yield actual_index, previous_page, next_page, target_path, page_posts
 
-    def markdown_post_paths(self) -> Iterator[Path]:
-        return self.posts_path.rglob('*md')
+    def _save_default_config(self):
+        with resources.as_file(resources.files('yabi') / self.DATA_DIR_NAME) as data_directory:
+            shutil.copytree(data_directory, self.data_path, dirs_exist_ok=True)
 
-    def orphan_target_paths(self) -> Iterator[Path]:
-        """ Returns the html paths of the current build that do not have a corresponding markdown path """
-        for target_path in self.website_posts_path.rglob('*.html'):
-            expected_post_path = self.main_path / target_path.relative_to(self.website_path).with_suffix('.md')
-            if not expected_post_path.exists():
-                yield target_path
+        for file in self.data_path.rglob('*'):  # refresh modification of all files to the current time
+            file.touch()
 
-    def build_post(self, post: Post):
-        post_template = self.template_environment.get_template(self.POST_TEMPLATE)
-        html_content = post.get_content_in_html()
-        html_page = post_template.render(post=post, content=html_content)
-        post.target_path.parent.mkdir(exist_ok=True)
-        post.target_path.write_text(html_page)
-
-    def get_post_target_html_path(self, post_path: Path) -> Path:
-        """ Target paths are named with the same name of the input markdown file name """
-        return self.website_posts_path / post_path.parent.relative_to(self.posts_path) / f'{post_path.stem}.html'
+        # TODO: think of adding a enum or something else for better control of all config variables
+        config = {'website_name': self.main_path.resolve().name,
+                  'website_author': '',
+                  'website_description': '',
+                  'website_keywords': ''}
+        json_encoded = json.dumps(config)
+        self.config_path.write_text(json_encoded)

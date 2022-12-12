@@ -1,3 +1,4 @@
+import os
 import textwrap
 from pathlib import Path
 
@@ -34,6 +35,9 @@ def post(created_blog) -> Post:
         
         A paragraph 
         """).strip()
+
+    created_blog.create_base_website()
+
     post_path = created_blog.posts_path / 'a_test_post.md'
     target_path = created_blog.website_path / 'posts' / 'a_test_post.html'
     post_path.write_text(post_text)
@@ -53,13 +57,19 @@ def post_not_dirty(created_blog):
         """).strip()
     post_path = created_blog.posts_path / 'a_test_post_not_dirty.md'
     target_path = created_blog.website_path / 'posts' / 'a_test_post_not_dirty.html'
+
+    created_blog.create_base_website()
+
     post_path.write_text(post_text)
     target_path.touch(exist_ok=True)
+    os.utime(target_path, (target_path.stat().st_atime_ns, target_path.stat().st_mtime_ns + 100))
     return Post(post_path, target_path)
 
 
 @pytest.fixture()
 def orphaned_target(created_blog):
+    created_blog.create_base_website()
+
     orphaned_target = created_blog.website_path / 'posts' / 'an_orphaned_post.html'
     orphaned_target.touch(exist_ok=True)
     return orphaned_target
@@ -76,6 +86,9 @@ def draft_post(created_blog) -> Post:
         
         A paragraph 
         """).strip()
+
+    created_blog.create_base_website()
+
     post_path = created_blog.posts_path / 'a_draft_test_post.md'
     target_path = created_blog.website_path / 'posts' / 'a_draft_test_post.html'
     post_path.write_text(post_text)

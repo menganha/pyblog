@@ -13,9 +13,9 @@ def test_init(mocker):
     mocked_blog_create.assert_called()
 
 
-def test_build_nothing_to_do(created_blog, mocker):
+def test_build_no_posts(created_blog, mocker):
     mock_load_config = mocker.patch.object(created_blog, 'load_config')
-    mock_copy_tree = mocker.patch('shutil.copytree')
+    mock_copy = mocker.patch('shutil.copy')
     mock_build_post = mocker.patch.object(created_blog, 'build_post')
     mock_build_home_page = mocker.patch.object(created_blog, 'build_home_page')
     mock_build_tag_page = mocker.patch.object(created_blog, 'build_tag_page')
@@ -24,16 +24,16 @@ def test_build_nothing_to_do(created_blog, mocker):
     cli.build(created_blog, force=False)
 
     mock_load_config.assert_called_once()
-    mock_copy_tree.assert_called()
-    mock_update_last_build_file.assert_called()
+    mock_copy.assert_not_called()
+    mock_update_last_build_file.assert_not_called()
     mock_build_post.assert_not_called()
-    mock_build_home_page.assert_called_once()
-    mock_build_tag_page.assert_called_once()
+    mock_build_home_page.assert_not_called()
+    mock_build_tag_page.assert_not_called()
 
 
-def test_build_change_config_files(created_blog, mocker):
+def test_build_change_config_files(created_blog, mocker, post_not_dirty):
     mocker.patch.object(created_blog, 'load_config')
-    mock_copy_tree = mocker.patch('shutil.copytree')
+    mock_copy = mocker.patch('shutil.copy')
     mock_build_post = mocker.patch.object(created_blog, 'build_post')
     mock_build_home_page = mocker.patch.object(created_blog, 'build_home_page')
     mock_build_tag_page = mocker.patch.object(created_blog, 'build_tag_page')
@@ -45,26 +45,28 @@ def test_build_change_config_files(created_blog, mocker):
 
     cli.build(created_blog, force=False)
 
-    mock_copy_tree.assert_called_with(created_blog.style_sheets_path, created_blog.website_path, dirs_exist_ok=True)
+    mock_copy.assert_called_with(created_blog.default_css_file_path, created_blog.website_path)
     mock_update_last_build_file.assert_called_once()
-    mock_build_post.assert_not_called()
+    assert len(mock_build_post.call_args_list) == 1
+    assert mock_build_post.call_args_list[0].args[0] == post_not_dirty
     mock_build_home_page.assert_called_once()
     mock_build_tag_page.assert_called_once()
 
 
 def test_build_with_posts(created_blog, mocker, post, draft_post, post_not_dirty, orphaned_target):
     mocker.patch.object(created_blog, 'load_config')
-    mock_copy_tree = mocker.patch('shutil.copytree')
+    mock_copy_tree = mocker.patch('shutil.copy')
     mock_build_post = mocker.patch.object(created_blog, 'build_post')
     mock_build_home_page = mocker.patch.object(created_blog, 'build_home_page')
     mock_build_tag_page = mocker.patch.object(created_blog, 'build_tag_page')
     mock_update_last_build_file = mocker.patch.object(created_blog, 'update_last_build_file')
+    mocker.patch.object(created_blog, 'is_config_file_updated', return_value=False)
 
     assert orphaned_target.exists()
 
     cli.build(created_blog, force=False)
 
-    mock_copy_tree.assert_not_called()
+    mock_copy_tree.assert_called_with(created_blog.default_css_file_path, created_blog.website_path)
     mock_update_last_build_file.assert_called_once()
     mock_build_home_page.assert_called_once()
     mock_build_tag_page.assert_called_once()

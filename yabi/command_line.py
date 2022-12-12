@@ -1,7 +1,6 @@
 import argparse
 import http.server
 import os
-import shutil
 import socketserver
 import sys
 from pathlib import Path
@@ -40,9 +39,11 @@ def build(blog: Blog, force: bool):
     all_public_posts = []
     needs_rebuild = False
 
-    if blog.is_style_sheet_updated() or force:
-        print(f'The style.css file has been modified. Copying new version to site...')
-        shutil.copytree(blog.style_sheets_path, blog.website_path, dirs_exist_ok=True)
+    if len(list(blog.markdown_post_paths())) == 0:
+        print(f'Error: No markdown posts found under the path {blog.posts_path}')
+        return 1
+
+    blog.create_base_website()
 
     if blog.is_config_file_updated() or force:
         print(f'The config.json file has been modified. Rebuilding whole site...')
@@ -75,7 +76,7 @@ def build(blog: Blog, force: bool):
     else:
         print('No new posts found!')
 
-    if blog.is_config_file_updated() or blog.is_style_sheet_updated() or needs_rebuild:
+    if force or needs_rebuild:
         blog.update_last_build_file()
 
 
@@ -101,6 +102,12 @@ def execute():
         blog = Blog(Path('.'))
         if not blog.is_blog():
             print(f'Error: The current path "{blog.main_path}" does not contain a yabi blog')
+            if not blog.posts_path.exists():
+                print(f'Error: No "{blog.POSTS_DIR_NAME}" path found on {blog.main_path}')
+            if not blog.data_path.exists():
+                print(f'Error: No "{blog.DATA_DIR_NAME}" path found on {blog.main_path}')
+            if not blog.config_path.exists():
+                print(f'Error: No {blog.CONFIG_FILE_NAME} path found on {blog.main_path}')
             return 1
 
         if args.command == 'build':
