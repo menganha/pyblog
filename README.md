@@ -34,7 +34,7 @@ This will create the following folder and files
       ├── data
       └── posts
 
-To publish your first though, create a new file on the `posts` folder, e.g.,  `posts/my_first_thought.md`. The only requirements for a post
+To publish your first thought, create a new file on the `posts` folder, e.g.,  `posts/my_first_thought.md`. The only requirements for a post
 is that
 
 1. It is somewhere inside the `posts` folder
@@ -71,4 +71,11 @@ which will create a local server with your website that you can visit on the url
 * _Markdown-format post system._ No need of complex databases, the only thing needed to build your website are the markdown files
   containing your posts. Ideal for version control!
 * _Optimized build system._ Only builds what you have recently added/changed.
+
+## License
+
+This software is licensed under the [BSD-2-Clause](LICENSE) License terms.
+
+The default blog style and design was heavily based on [Armin Ronacher's](https://lucumr.pocoo.org/) blog.
+
 
